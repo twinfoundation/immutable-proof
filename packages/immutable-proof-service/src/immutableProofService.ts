@@ -179,7 +179,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			};
 			await this._proofStorage.set(proofEntity);
 
-			this.startProcessingProofs();
+			this.startProcessingProofs(0);
 
 			return new Urn(ImmutableProofService.NAMESPACE, id).toString();
 		} catch (error) {
@@ -339,14 +339,16 @@ export class ImmutableProofService implements IImmutableProofComponent {
 
 	/**
 	 * Start processing proofs.
+	 * @param interval The interval to process proofs.
 	 * @returns Nothing.
 	 * @internal
 	 */
-	private startProcessingProofs(): void {
+	private startProcessingProofs(interval: number): void {
 		if (!this._processing) {
+			this._processing = true;
 			setTimeout(async () => {
 				await this.processProofs();
-			}, 0);
+			}, interval);
 		}
 	}
 
@@ -355,54 +357,60 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	 * @internal
 	 */
 	private async processProofs(): Promise<void> {
-		// Get the oldest pending proof, plus one more, we can then determine whether to
-		// trigger another process after this one
-		const pendingProofs = await this._proofStorage.query(
-			{
-				property: "immutableStorageId",
-				comparison: ComparisonOperator.Equals,
-				value: undefined
-			},
-			[
+		let remainingProofs = 0;
+		try {
+			// Get the oldest pending proof, plus one more, we can then determine whether to
+			// trigger another process after this one
+			const pendingProofs = await this._proofStorage.query(
 				{
-					property: "dateCreated",
-					sortDirection: SortDirection.Ascending
-				}
-			],
-			undefined,
-			undefined,
-			2
-		);
-
-		if (pendingProofs.entities.length > 0) {
-			const proofEntity = pendingProofs.entities[0] as ImmutableProof;
-
-			const immutableProof: IImmutableProof = this.proofEntityToModel(proofEntity);
-
-			const hashData = await this.generateHashData(proofEntity.nodeIdentity, immutableProof);
-
-			immutableProof.proof = await this._identityConnector.createProof(
-				proofEntity.nodeIdentity,
-				`${proofEntity.nodeIdentity}#${this._assertionMethodId}`,
-				hashData
+					property: "immutableStorageId",
+					comparison: ComparisonOperator.Equals,
+					value: undefined
+				},
+				[
+					{
+						property: "dateCreated",
+						sortDirection: SortDirection.Ascending
+					}
+				],
+				undefined,
+				undefined,
+				2
 			);
 
-			proofEntity.dateCreated = immutableProof.proof.created ?? new Date(Date.now()).toISOString();
+			remainingProofs = pendingProofs.entities.length;
+			if (remainingProofs > 0) {
+				const proofEntity = pendingProofs.entities[0] as ImmutableProof;
 
-			const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
+				const immutableProof: IImmutableProof = this.proofEntityToModel(proofEntity);
 
-			proofEntity.immutableStorageId = await this._immutableStorage.store(
-				proofEntity.nodeIdentity,
-				ObjectHelper.toBytes(compacted)
-			);
+				const hashData = await this.generateHashData(proofEntity.nodeIdentity, immutableProof);
 
-			await this._proofStorage.set(proofEntity);
-		}
+				immutableProof.proof = await this._identityConnector.createProof(
+					proofEntity.nodeIdentity,
+					`${proofEntity.nodeIdentity}#${this._assertionMethodId}`,
+					hashData
+				);
 
-		// If there are still remaining proofs, start the timer again
-		this._processing = false;
-		if (pendingProofs.entities.length > 1) {
-			this.startProcessingProofs();
+				proofEntity.dateCreated =
+					immutableProof.proof.created ?? new Date(Date.now()).toISOString();
+
+				const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
+
+				proofEntity.immutableStorageId = await this._immutableStorage.store(
+					proofEntity.nodeIdentity,
+					ObjectHelper.toBytes(compacted)
+				);
+
+				await this._proofStorage.set(proofEntity);
+				remainingProofs--;
+			}
+		} finally {
+			// If there are still remaining proofs, start the timer again
+			this._processing = false;
+			if (remainingProofs > 0) {
+				this.startProcessingProofs(100);
+			}
 		}
 	}
 
