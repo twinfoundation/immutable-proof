@@ -1,0 +1,9 @@
+{
+	"baseUrl": "https://schema.twindev.org/immutable-proof/",
+	"sources": ["./src/models/**/*.ts"],
+	"types": ["IImmutableProof", "ImmutableProofFailure"],
+	"externalReferences": {
+		"IJsonLd(.*)": "https://schema.twindev.org/json-ld/JsonLd$1",
+		"IDid(.*)": "https://schema.twindev.org/did/Did$1"
+	}
+}
