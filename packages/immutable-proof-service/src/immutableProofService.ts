@@ -108,7 +108,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	 * @param options.config The configuration for the connector.
 	 * @param options.vaultConnectorType The vault connector type, defaults to "vault".
 	 * @param options.immutableProofEntityStorageType The entity storage for proofs, defaults to "immutable-proof".
-	 * @param options.immutableStorageType The immutable storage, defaults to "immutable-proof".
+	 * @param options.immutableStorageType The immutable storage, defaults to "immutable-storage".
 	 * @param options.identityConnectorType The identity connector type, defaults to "identity".
 	 */
 	constructor(options?: {
@@ -125,7 +125,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		);
 
 		this._immutableStorage = ImmutableStorageConnectorFactory.get(
-			options?.immutableStorageType ?? "immutable-proof"
+			options?.immutableStorageType ?? "immutable-storage"
 		);
 
 		this._identityConnector = IdentityConnectorFactory.get(

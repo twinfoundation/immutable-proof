@@ -30,7 +30,7 @@ The entity storage for proofs, defaults to "immutable-proof".
 
 • **options.immutableStorageType?**: `string`
 
-The immutable storage, defaults to "immutable-proof".
+The immutable storage, defaults to "immutable-storage".
 
 • **options.config?**: [`IImmutableProofServiceConfig`](../interfaces/IImmutableProofServiceConfig.md)
 

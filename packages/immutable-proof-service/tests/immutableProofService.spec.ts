@@ -41,7 +41,7 @@ describe("ImmutableProofService", () => {
 		EntityStorageConnectorFactory.register("immutable-item", () => immutableStorage);
 
 		ImmutableStorageConnectorFactory.register(
-			"immutable-proof",
+			"immutable-storage",
 			() => new EntityStorageImmutableStorageConnector()
 		);
 
