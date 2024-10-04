@@ -9,17 +9,17 @@ import type {
 } from "@twin.org/api-models";
 import { ComponentFactory, Guards } from "@twin.org/core";
 import {
-	type IImmutableProofCreateRequest,
-	ImmutableProofTypes,
 	type IImmutableProofComponent,
+	type IImmutableProofCreateRequest,
 	type IImmutableProofGetRequest,
 	type IImmutableProofGetResponse,
 	type IImmutableProofVerifyRequest,
 	type IImmutableProofVerifyResponse,
-	ImmutableProofFailure
+	ImmutableProofFailure,
+	ImmutableProofTypes
 } from "@twin.org/immutable-proof-models";
 import { nameof } from "@twin.org/nameof";
-import { DidContexts, DidTypes, DidCryptoSuites } from "@twin.org/standards-w3c-did";
+import { DidContexts, DidCryptoSuites, DidTypes } from "@twin.org/standards-w3c-did";
 import { HeaderTypes, HttpStatusCode, MimeTypes } from "@twin.org/web";
 
 /**
@@ -216,6 +216,8 @@ export function generateRestRoutesImmutableProof(
 						id: "immutableProofVerifyResponseExample",
 						response: {
 							body: {
+								"@context": ImmutableProofTypes.ContextRoot,
+								type: ImmutableProofTypes.ImmutableProofVerification,
 								verified: true
 							}
 						}
@@ -229,6 +231,8 @@ export function generateRestRoutesImmutableProof(
 						id: "immutableProofVerifyResponseFailExample",
 						response: {
 							body: {
+								"@context": ImmutableProofTypes.ContextRoot,
+								type: ImmutableProofTypes.ImmutableProofVerification,
 								verified: false,
 								failure: ImmutableProofFailure.ProofTypeMismatch
 							}
@@ -325,10 +329,15 @@ export async function immutableProofVerify(
 	Guards.stringValue(ROUTES_SOURCE, nameof(request.pathParams.id), request.pathParams.id);
 	Guards.object(ROUTES_SOURCE, nameof(request.body.proofObject), request.body.proofObject);
 
+	const mimeType = request.headers?.[HeaderTypes.Accept] === MimeTypes.JsonLd ? "jsonld" : "json";
+
 	const component = ComponentFactory.get<IImmutableProofComponent>(componentName);
 	const result = await component.verify(request.pathParams.id, request.body.proofObject);
 
 	return {
+		headers: {
+			[HeaderTypes.ContentType]: mimeType === "json" ? MimeTypes.Json : MimeTypes.JsonLd
+		},
 		body: result
 	};
 }

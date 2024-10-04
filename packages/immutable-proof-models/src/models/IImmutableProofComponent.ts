@@ -3,7 +3,7 @@
 import type { IComponent } from "@twin.org/core";
 import type { IJsonLdNodeObject } from "@twin.org/data-json-ld";
 import type { IImmutableProof } from "./IImmutableProof";
-import type { ImmutableProofFailure } from "./immutableProofFailure";
+import type { IImmutableProofVerification } from "./IImmutableProofVerification";
 
 /**
  * Interface describing an immutable proof contract.
@@ -37,13 +37,7 @@ export interface IImmutableProofComponent extends IComponent {
 	 * @returns The result of the verification and any failures.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	verify(
-		id: string,
-		proofObject: IJsonLdNodeObject
-	): Promise<{
-		verified: boolean;
-		failure?: ImmutableProofFailure;
-	}>;
+	verify(id: string, proofObject: IJsonLdNodeObject): Promise<IImmutableProofVerification>;
 
 	/**
 	 * Remove the immutable storage for the proof.

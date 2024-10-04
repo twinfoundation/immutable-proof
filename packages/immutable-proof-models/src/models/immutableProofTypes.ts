@@ -14,7 +14,12 @@ export const ImmutableProofTypes = {
 	/**
 	 * Represents Immutable Proof.
 	 */
-	ImmutableProof: "ImmutableProof"
+	ImmutableProof: "ImmutableProof",
+
+	/**
+	 * Represents Immutable Proof Verification.
+	 */
+	ImmutableProofVerification: "ImmutableProofVerification"
 } as const;
 
 /**

@@ -45,9 +45,7 @@ describe("ImmutableProofService", () => {
 			() => new EntityStorageImmutableStorageConnector()
 		);
 
-		Date.now = vi
-			.fn()
-			.mockImplementation(() => FIRST_TICK);
+		Date.now = vi.fn().mockImplementation(() => FIRST_TICK);
 		RandomHelper.generate = vi
 			.fn()
 			.mockImplementationOnce(length => new Uint8Array(length).fill(1))
@@ -253,6 +251,8 @@ describe("ImmutableProofService", () => {
 
 		const result = await service.verify(proofId, proofObject);
 		expect(result).toEqual({
+			"@context": "https://schema.twindev.org/immutable-proof/",
+			type: "ImmutableProofVerification",
 			verified: false,
 			failure: "notIssued"
 		});
@@ -303,6 +303,8 @@ describe("ImmutableProofService", () => {
 
 		const result = await service.verify(proofId, proofObject);
 		expect(result).toEqual({
+			"@context": "https://schema.twindev.org/immutable-proof/",
+			type: "ImmutableProofVerification",
 			verified: true
 		});
 	});

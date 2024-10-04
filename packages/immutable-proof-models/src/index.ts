@@ -7,6 +7,7 @@ export * from "./models/api/IImmutableProofGetResponse";
 export * from "./models/api/IImmutableProofVerifyRequest";
 export * from "./models/api/IImmutableProofVerifyResponse";
 export * from "./models/IImmutableProof";
+export * from "./models/IImmutableProofVerification";
 export * from "./models/IImmutableProofComponent";
 export * from "./models/immutableProofFailure";
 export * from "./models/immutableProofTypes";

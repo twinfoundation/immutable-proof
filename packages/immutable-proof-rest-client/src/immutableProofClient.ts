@@ -10,9 +10,9 @@ import type {
 	IImmutableProofCreateRequest,
 	IImmutableProofGetRequest,
 	IImmutableProofGetResponse,
+	IImmutableProofVerification,
 	IImmutableProofVerifyRequest,
-	IImmutableProofVerifyResponse,
-	ImmutableProofFailure
+	IImmutableProofVerifyResponse
 } from "@twin.org/immutable-proof-models";
 import { nameof } from "@twin.org/nameof";
 import { HeaderTypes, MimeTypes } from "@twin.org/web";
@@ -86,10 +86,7 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 	public async verify(
 		id: string,
 		proofObject: IJsonLdNodeObject
-	): Promise<{
-		verified: boolean;
-		failure?: ImmutableProofFailure;
-	}> {
+	): Promise<IImmutableProofVerification> {
 		Guards.stringValue(this.CLASS_NAME, nameof(id), id);
 		Guards.object(this.CLASS_NAME, nameof(proofObject), proofObject);
 
@@ -97,6 +94,9 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 			"/:id",
 			"POST",
 			{
+				headers: {
+					[HeaderTypes.Accept]: MimeTypes.JsonLd
+				},
 				pathParams: {
 					id
 				},

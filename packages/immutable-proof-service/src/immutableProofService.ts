@@ -24,6 +24,7 @@ import {
 } from "@twin.org/entity-storage-models";
 import { IdentityConnectorFactory, type IIdentityConnector } from "@twin.org/identity-models";
 import {
+	type IImmutableProofVerification,
 	ImmutableProofFailure,
 	ImmutableProofTypes,
 	type IImmutableProof,
@@ -225,10 +226,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	public async verify(
 		id: string,
 		proofObject: IJsonLdNodeObject
-	): Promise<{
-		verified: boolean;
-		failure?: ImmutableProofFailure;
-	}> {
+	): Promise<IImmutableProofVerification> {
 		Guards.stringValue(this.CLASS_NAME, nameof(id), id);
 
 		const urnParsed = Urn.fromValidString(id);
@@ -244,6 +242,8 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			const { verified, failure } = await this.internalGet(id, proofObject);
 
 			return {
+				"@context": ImmutableProofTypes.ContextRoot,
+				type: ImmutableProofTypes.ImmutableProofVerification,
 				verified,
 				failure
 			};
