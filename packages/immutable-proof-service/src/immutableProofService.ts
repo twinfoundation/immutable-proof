@@ -384,7 +384,6 @@ export class ImmutableProofService implements IImmutableProofComponent {
 				// As we are adding the proof to the data we update its context
 				immutableProof["@context"] = [
 					ImmutableProofTypes.ContextRoot,
-					ImmutableStorageTypes.ContextRoot,
 					DidContexts.ContextVCDataIntegrity
 				];
 				immutableProof.proof = await this._identityConnector.createProof(
@@ -453,6 +452,10 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			if (Is.uint8Array(immutableResult.data)) {
 				proofModel = ObjectHelper.fromBytes<IImmutableProof>(immutableResult.data);
 				proofModel.immutableReceipt = immutableResult.receipt;
+				// As we are adding the receipt to the data we update its context
+				if (Is.array(proofModel["@context"])) {
+					proofModel["@context"].push(ImmutableStorageTypes.ContextRoot);
+				}
 
 				if (Is.object(proofModel.proof) && Is.object(proofObject)) {
 					if (proofModel.proof.cryptosuite !== DidCryptoSuites.EdDSAJcs2022) {
