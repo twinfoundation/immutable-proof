@@ -16,7 +16,6 @@ import {
 } from "@twin.org/core";
 import { Blake2b, Sha256 } from "@twin.org/crypto";
 import { JsonLdHelper, JsonLdProcessor, type IJsonLdNodeObject } from "@twin.org/data-json-ld";
-import { SchemaOrgDataTypes, SchemaOrgTypes } from "@twin.org/data-schema-org";
 import { ComparisonOperator, SortDirection } from "@twin.org/entity";
 import {
 	EntityStorageConnectorFactory,
@@ -24,14 +23,15 @@ import {
 } from "@twin.org/entity-storage-models";
 import { IdentityConnectorFactory, type IIdentityConnector } from "@twin.org/identity-models";
 import {
-	type IImmutableProofVerification,
 	ImmutableProofFailure,
 	ImmutableProofTypes,
 	type IImmutableProof,
-	type IImmutableProofComponent
+	type IImmutableProofComponent,
+	type IImmutableProofVerification
 } from "@twin.org/immutable-proof-models";
 import {
 	ImmutableStorageConnectorFactory,
+	ImmutableStorageTypes,
 	type IImmutableStorageConnector
 } from "@twin.org/immutable-storage-models";
 import { nameof } from "@twin.org/nameof";
@@ -136,7 +136,6 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		this._assertionMethodId = this._config.assertionMethodId ?? "immutable-proof";
 		this._proofConfigKeyId = this._config.proofConfigKeyId ?? "immutable-proof";
 
-		SchemaOrgDataTypes.registerRedirects();
 		this._processing = false;
 	}
 
@@ -320,13 +319,9 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	 * @returns The model.
 	 * @internal
 	 */
-	private proofEntityToModel(proofEntity: ImmutableProof): IImmutableProof {
+	private proofEntityToJsonLd(proofEntity: ImmutableProof): IImmutableProof {
 		const model: IImmutableProof = {
-			"@context": [
-				ImmutableProofTypes.ContextRoot,
-				SchemaOrgTypes.ContextRoot,
-				DidContexts.ContextVCDataIntegrity
-			],
+			"@context": ImmutableProofTypes.ContextRoot,
 			type: ImmutableProofTypes.ImmutableProof,
 			id: proofEntity.id,
 			userIdentity: proofEntity.userIdentity,
@@ -382,25 +377,34 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			if (remainingProofs > 0) {
 				const proofEntity = pendingProofs.entities[0] as ImmutableProof;
 
-				const immutableProof: IImmutableProof = this.proofEntityToModel(proofEntity);
+				const immutableProof: IImmutableProof = this.proofEntityToJsonLd(proofEntity);
 
 				const hashData = await this.generateHashData(proofEntity.nodeIdentity, immutableProof);
 
+				// As we are adding the proof to the data we update its context
+				immutableProof["@context"] = [
+					ImmutableProofTypes.ContextRoot,
+					ImmutableStorageTypes.ContextRoot,
+					DidContexts.ContextVCDataIntegrity
+				];
 				immutableProof.proof = await this._identityConnector.createProof(
 					proofEntity.nodeIdentity,
 					`${proofEntity.nodeIdentity}#${this._assertionMethodId}`,
 					hashData
 				);
 
-				proofEntity.dateCreated =
-					immutableProof.proof.created ?? new Date(Date.now()).toISOString();
+				if (Is.stringValue(immutableProof.proof.created)) {
+					proofEntity.dateCreated = immutableProof.proof.created;
+				}
 
 				const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
 
-				proofEntity.immutableStorageId = await this._immutableStorage.store(
+				const immutableStoreResult = await this._immutableStorage.store(
 					proofEntity.nodeIdentity,
 					ObjectHelper.toBytes(compacted)
 				);
+
+				proofEntity.immutableStorageId = immutableStoreResult.id;
 
 				await this._proofStorage.set(proofEntity);
 				remainingProofs--;
@@ -438,16 +442,17 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			throw new NotFoundError(this.CLASS_NAME, "proofNotFound", id);
 		}
 
-		let proofModel = await this.proofEntityToModel(proofEntity);
+		let proofModel = await this.proofEntityToJsonLd(proofEntity);
 		let verified = false;
 		let failure: ImmutableProofFailure | undefined = ImmutableProofFailure.NotIssued;
 
 		if (Is.stringValue(proofEntity.immutableStorageId)) {
 			failure = ImmutableProofFailure.ProofMissing;
-			const immutableData = await this._immutableStorage.get(proofEntity.immutableStorageId);
+			const immutableResult = await this._immutableStorage.get(proofEntity.immutableStorageId);
 
-			if (Is.uint8Array(immutableData)) {
-				proofModel = ObjectHelper.fromBytes<IImmutableProof>(immutableData);
+			if (Is.uint8Array(immutableResult.data)) {
+				proofModel = ObjectHelper.fromBytes<IImmutableProof>(immutableResult.data);
+				proofModel.immutableReceipt = immutableResult.receipt;
 
 				if (Is.object(proofModel.proof) && Is.object(proofObject)) {
 					if (proofModel.proof.cryptosuite !== DidCryptoSuites.EdDSAJcs2022) {
@@ -492,7 +497,12 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		nodeIdentity: string,
 		immutableProof: IImmutableProof
 	): Promise<Uint8Array> {
-		const canonicalDocument = JsonHelper.canonicalize(ObjectHelper.omit(immutableProof, ["proof"]));
+		// We hash the data for the proof with the proof or immutable receipt for the proof
+		// without these objects we can simplify the context
+		const object = ObjectHelper.omit(immutableProof, ["proof", "immutableReceipt"]);
+		object["@context"] = ImmutableProofTypes.ContextRoot;
+
+		const canonicalDocument = JsonHelper.canonicalize(object);
 
 		const proofConfigKey = await this._vaultConnector.getKey(
 			`${nodeIdentity}/${this._proofConfigKeyId}`

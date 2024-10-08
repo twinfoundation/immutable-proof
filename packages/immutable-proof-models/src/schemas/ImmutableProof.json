@@ -47,6 +47,10 @@
 		"proof": {
 			"$ref": "https://schema.twindev.org/did/DidProof",
 			"description": "The proof which can be undefined if it has not yet been issued."
+		},
+		"immutableReceipt": {
+			"$ref": "https://schema.twindev.org/json-ld/JsonLdNodeObject",
+			"description": "The immutable receipt detail for where the proof is stored."
 		}
 	},
 	"required": [
