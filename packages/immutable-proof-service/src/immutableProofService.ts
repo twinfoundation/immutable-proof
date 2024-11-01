@@ -91,10 +91,10 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	private readonly _assertionMethodId: string;
 
 	/**
-	 * The proof config key id to use for the proofs.
+	 * The proof hash key id to use for the proofs.
 	 * @internal
 	 */
-	private readonly _proofConfigKeyId: string;
+	private readonly _proofHashKeyId: string;
 
 	/**
 	 * Are we currently processing proofs.
@@ -133,8 +133,8 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		);
 
 		this._config = options?.config ?? {};
-		this._assertionMethodId = this._config.assertionMethodId ?? "immutable-proof";
-		this._proofConfigKeyId = this._config.proofConfigKeyId ?? "immutable-proof";
+		this._assertionMethodId = this._config.assertionMethodId ?? "immutable-proof-assertion";
+		this._proofHashKeyId = this._config.proofHashKeyId ?? "immutable-proof-hash";
 
 		this._processing = false;
 	}
@@ -500,23 +500,21 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		nodeIdentity: string,
 		immutableProof: IImmutableProof
 	): Promise<Uint8Array> {
-		// We hash the data for the proof with the proof or immutable receipt for the proof
+		// We hash the data for the proof without the the proof or immutable receipt for the proof
 		// without these objects we can simplify the context
 		const object = ObjectHelper.omit(immutableProof, ["proof", "immutableReceipt"]);
 		object["@context"] = ImmutableProofTypes.ContextRoot;
 
 		const canonicalDocument = JsonHelper.canonicalize(object);
 
-		const proofConfigKey = await this._vaultConnector.getKey(
-			`${nodeIdentity}/${this._proofConfigKeyId}`
-		);
+		const proofKey = await this._vaultConnector.getKey(`${nodeIdentity}/${this._proofHashKeyId}`);
 
-		const proofConfigHash = Sha256.sum256(proofConfigKey.privateKey);
+		const proofHash = Sha256.sum256(proofKey.privateKey);
 		const transformedDocumentHash = Sha256.sum256(Converter.utf8ToBytes(canonicalDocument));
 
-		const hashData = new Uint8Array(proofConfigHash.length + transformedDocumentHash.length);
-		hashData.set(proofConfigHash);
-		hashData.set(transformedDocumentHash, proofConfigHash.length);
+		const hashData = new Uint8Array(proofHash.length + transformedDocumentHash.length);
+		hashData.set(proofHash);
+		hashData.set(transformedDocumentHash, proofHash.length);
 
 		return hashData;
 	}
