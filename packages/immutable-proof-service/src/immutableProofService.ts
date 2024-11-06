@@ -1,6 +1,10 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import {
+	BackgroundTaskConnectorFactory,
+	type IBackgroundTaskConnector
+} from "@twin.org/background-task-models";
+import {
 	Converter,
 	GeneralError,
 	Guards,
@@ -16,7 +20,6 @@ import {
 } from "@twin.org/core";
 import { Blake2b, Sha256 } from "@twin.org/crypto";
 import { JsonLdHelper, JsonLdProcessor, type IJsonLdNodeObject } from "@twin.org/data-json-ld";
-import { ComparisonOperator, SortDirection } from "@twin.org/entity";
 import {
 	EntityStorageConnectorFactory,
 	type IEntityStorageConnector
@@ -85,6 +88,12 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	private readonly _immutableStorage: IImmutableStorageConnector;
 
 	/**
+	 * The background task connector.
+	 * @internal
+	 */
+	private readonly _backgroundTaskConnector: IBackgroundTaskConnector;
+
+	/**
 	 * The assertion method id to use for the proofs.
 	 * @internal
 	 */
@@ -97,12 +106,6 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	private readonly _proofHashKeyId: string;
 
 	/**
-	 * Are we currently processing proofs.
-	 * @internal
-	 */
-	private _processing: boolean;
-
-	/**
 	 * Create a new instance of ImmutableProofService.
 	 * @param options The dependencies for the immutable proof connector.
 	 * @param options.config The configuration for the connector.
@@ -110,13 +113,15 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	 * @param options.immutableProofEntityStorageType The entity storage for proofs, defaults to "immutable-proof".
 	 * @param options.immutableStorageType The immutable storage, defaults to "immutable-storage".
 	 * @param options.identityConnectorType The identity connector type, defaults to "identity".
+	 * @param options.backgroundTaskConnectorType The background task connector type, defaults to "background-task".
 	 */
 	constructor(options?: {
 		vaultConnectorType?: string;
 		immutableProofEntityStorageType?: string;
 		immutableStorageType?: string;
-		config?: IImmutableProofServiceConfig;
 		identityConnectorType?: string;
+		backgroundTaskConnectorType?: string;
+		config?: IImmutableProofServiceConfig;
 	}) {
 		this._vaultConnector = VaultConnectorFactory.get(options?.vaultConnectorType ?? "vault");
 
@@ -132,11 +137,18 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			options?.identityConnectorType ?? "identity"
 		);
 
+		this._backgroundTaskConnector = BackgroundTaskConnectorFactory.get(
+			options?.backgroundTaskConnectorType ?? "background-task"
+		);
+
 		this._config = options?.config ?? {};
 		this._assertionMethodId = this._config.assertionMethodId ?? "immutable-proof-assertion";
 		this._proofHashKeyId = this._config.proofHashKeyId ?? "immutable-proof-hash";
 
-		this._processing = false;
+		this._backgroundTaskConnector.registerHandler<ImmutableProof, unknown>(
+			"immutable-proof",
+			async proof => this.processProof(proof)
+		);
 	}
 
 	/**
@@ -178,7 +190,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			};
 			await this._proofStorage.set(proofEntity);
 
-			this.startProcessingProofs(0);
+			await this._backgroundTaskConnector.create("immutable-proof", proofEntity);
 
 			return new Urn(ImmutableProofService.NAMESPACE, id).toString();
 		} catch (error) {
@@ -333,88 +345,40 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	}
 
 	/**
-	 * Start processing proofs.
-	 * @param interval The interval to process proofs.
-	 * @returns Nothing.
+	 * Process a proof.
+	 * @param proofEntity The proof entity to process.
 	 * @internal
 	 */
-	private startProcessingProofs(interval: number): void {
-		if (!this._processing) {
-			this._processing = true;
-			setTimeout(async () => {
-				await this.processProofs();
-			}, interval);
+	private async processProof(proofEntity: ImmutableProof): Promise<void> {
+		const immutableProof: IImmutableProof = this.proofEntityToJsonLd(proofEntity);
+
+		const hashData = await this.generateHashData(proofEntity.nodeIdentity, immutableProof);
+
+		// As we are adding the proof to the data we update its context
+		immutableProof["@context"] = [
+			ImmutableProofTypes.ContextRoot,
+			DidContexts.ContextVCDataIntegrity
+		];
+		immutableProof.proof = await this._identityConnector.createProof(
+			proofEntity.nodeIdentity,
+			`${proofEntity.nodeIdentity}#${this._assertionMethodId}`,
+			hashData
+		);
+
+		if (Is.stringValue(immutableProof.proof.created)) {
+			proofEntity.dateCreated = immutableProof.proof.created;
 		}
-	}
 
-	/**
-	 * Process the proofs.
-	 * @internal
-	 */
-	private async processProofs(): Promise<void> {
-		let remainingProofs = 0;
-		try {
-			// Get the oldest pending proof, plus one more, we can then determine whether to
-			// trigger another process after this one
-			const pendingProofs = await this._proofStorage.query(
-				{
-					property: "immutableStorageId",
-					comparison: ComparisonOperator.Equals,
-					value: undefined
-				},
-				[
-					{
-						property: "dateCreated",
-						sortDirection: SortDirection.Ascending
-					}
-				],
-				undefined,
-				undefined,
-				2
-			);
+		const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
 
-			remainingProofs = pendingProofs.entities.length;
-			if (remainingProofs > 0) {
-				const proofEntity = pendingProofs.entities[0] as ImmutableProof;
+		const immutableStoreResult = await this._immutableStorage.store(
+			proofEntity.nodeIdentity,
+			ObjectHelper.toBytes(compacted)
+		);
 
-				const immutableProof: IImmutableProof = this.proofEntityToJsonLd(proofEntity);
+		proofEntity.immutableStorageId = immutableStoreResult.id;
 
-				const hashData = await this.generateHashData(proofEntity.nodeIdentity, immutableProof);
-
-				// As we are adding the proof to the data we update its context
-				immutableProof["@context"] = [
-					ImmutableProofTypes.ContextRoot,
-					DidContexts.ContextVCDataIntegrity
-				];
-				immutableProof.proof = await this._identityConnector.createProof(
-					proofEntity.nodeIdentity,
-					`${proofEntity.nodeIdentity}#${this._assertionMethodId}`,
-					hashData
-				);
-
-				if (Is.stringValue(immutableProof.proof.created)) {
-					proofEntity.dateCreated = immutableProof.proof.created;
-				}
-
-				const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
-
-				const immutableStoreResult = await this._immutableStorage.store(
-					proofEntity.nodeIdentity,
-					ObjectHelper.toBytes(compacted)
-				);
-
-				proofEntity.immutableStorageId = immutableStoreResult.id;
-
-				await this._proofStorage.set(proofEntity);
-				remainingProofs--;
-			}
-		} finally {
-			// If there are still remaining proofs, start the timer again
-			this._processing = false;
-			if (remainingProofs > 0) {
-				this.startProcessingProofs(100);
-			}
-		}
+		await this._proofStorage.set(proofEntity);
 	}
 
 	/**

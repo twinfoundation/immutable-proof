@@ -1,5 +1,11 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import {
+	EntityStorageBackgroundTaskConnector,
+	type BackgroundTask,
+	initSchema as initSchemaBackgroundTask
+} from "@twin.org/background-task-connector-entity-storage";
+import { BackgroundTaskConnectorFactory } from "@twin.org/background-task-models";
 import { RandomHelper } from "@twin.org/core";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
@@ -17,6 +23,8 @@ import { initSchema } from "../src/schema";
 
 let proofStorage: MemoryEntityStorageConnector<ImmutableProof>;
 let immutableStorage: MemoryEntityStorageConnector<ImmutableItem>;
+let backgroundTaskStorage: MemoryEntityStorageConnector<BackgroundTask>;
+let backgroundTaskConnectorEntityStorage: EntityStorageBackgroundTaskConnector;
 
 const FIRST_TICK = 1724327716271;
 
@@ -37,14 +45,25 @@ describe("ImmutableProofService", () => {
 
 		initSchema();
 		initSchemaImmutableStorage();
+		initSchemaBackgroundTask();
 	});
 
 	beforeEach(async () => {
 		proofStorage = new MemoryEntityStorageConnector<ImmutableProof>({
 			entitySchema: nameof<ImmutableProof>()
 		});
-
 		EntityStorageConnectorFactory.register("immutable-proof", () => proofStorage);
+
+		backgroundTaskStorage = new MemoryEntityStorageConnector<BackgroundTask>({
+			entitySchema: nameof<BackgroundTask>()
+		});
+		EntityStorageConnectorFactory.register("background-task", () => backgroundTaskStorage);
+
+		backgroundTaskConnectorEntityStorage = new EntityStorageBackgroundTaskConnector();
+		BackgroundTaskConnectorFactory.register(
+			"background-task",
+			() => backgroundTaskConnectorEntityStorage
+		);
 
 		immutableStorage = new MemoryEntityStorageConnector<ImmutableItem>({
 			entitySchema: nameof<ImmutableItem>()
@@ -157,6 +176,8 @@ describe("ImmutableProofService", () => {
 	});
 
 	test("Can get a proof that has been issued", async () => {
+		await backgroundTaskConnectorEntityStorage.start("");
+
 		const service = new ImmutableProofService();
 
 		const proofId = await service.create(
@@ -187,7 +208,7 @@ describe("ImmutableProofService", () => {
 				proofObjectId: "123",
 				proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y=",
 				immutableStorageId:
-					"immutable:entity-storage:0404040404040404040404040404040404040404040404040404040404040404"
+					"immutable:entity-storage:0303030303030303030303030303030303030303030303030303030303030303"
 			}
 		]);
 
@@ -222,7 +243,7 @@ describe("ImmutableProofService", () => {
 		const immutableStore = immutableStorage.getStore();
 		expect(immutableStore).toEqual([
 			{
-				id: "0404040404040404040404040404040404040404040404040404040404040404",
+				id: "0303030303030303030303030303030303030303030303030303030303030303",
 				controller:
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363",
 				data: "eyJAY29udGV4dCI6WyJodHRwczovL3NjaGVtYS50d2luZGV2Lm9yZy9pbW11dGFibGUtcHJvb2YvIiwiaHR0cHM6Ly93M2lkLm9yZy9zZWN1cml0eS9kYXRhLWludGVncml0eS92MiJdLCJpZCI6IjAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEiLCJ0eXBlIjoiSW1tdXRhYmxlUHJvb2YiLCJwcm9vZk9iamVjdEhhc2giOiJFQU9LeUROMG1ZUWJCaDkxZU1kVmVyb3hReDFINEdmblJibXQ2bi8yTC9ZPSIsInByb29mT2JqZWN0SWQiOiIxMjMiLCJ1c2VySWRlbnRpdHkiOiJkaWQ6ZW50aXR5LXN0b3JhZ2U6MHg1ODU4NTg1ODU4NTg1ODU4NTg1ODU4NTg1ODU4NTg1ODU4NTg1ODU4NTg1ODU4NTg1ODU4NTg1ODU4NTg1ODU4IiwicHJvb2YiOnsidHlwZSI6IkRhdGFJbnRlZ3JpdHlQcm9vZiIsImNyZWF0ZWQiOiIyMDI0LTA4LTIyVDExOjU1OjE2LjI3MVoiLCJjcnlwdG9zdWl0ZSI6ImVkZHNhLWpjcy0yMDIyIiwicHJvb2ZQdXJwb3NlIjoiYXNzZXJ0aW9uTWV0aG9kIiwicHJvb2ZWYWx1ZSI6IjVuR1Z5WXRNdUJSeTZTM0MydkFCcTZ6WlQxSmlydERRb2dtSEg2ZkM0TFJBTEh6Tm51ZDVuMndDM2VXRUN4dG5YWHBkYTF0Y1JvTHVKRUV4Q3hEZmk3UnIiLCJ2ZXJpZmljYXRpb25NZXRob2QiOiJkaWQ6ZW50aXR5LXN0b3JhZ2U6MHg2MzYzNjM2MzYzNjM2MzYzNjM2MzYzNjM2MzYzNjM2MzYzNjM2MzYzNjM2MzYzNjM2MzYzNjM2MzYzNjM2MzYzI2ltbXV0YWJsZS1wcm9vZi1hc3NlcnRpb24ifX0="
@@ -280,6 +301,8 @@ describe("ImmutableProofService", () => {
 	});
 
 	test("Can verify a proof that has been issued", async () => {
+		await backgroundTaskConnectorEntityStorage.start("");
+
 		const service = new ImmutableProofService();
 
 		const proofObject = {
