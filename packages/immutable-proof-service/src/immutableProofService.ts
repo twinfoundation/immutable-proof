@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0.
 import {
 	BackgroundTaskConnectorFactory,
+	TaskStatus,
+	type IBackgroundTask,
 	type IBackgroundTaskConnector
 } from "@twin.org/background-task-models";
 import {
@@ -32,6 +34,10 @@ import {
 	type IImmutableProofComponent,
 	type IImmutableProofVerification
 } from "@twin.org/immutable-proof-models";
+import type {
+	IImmutableProofTaskPayload,
+	IImmutableProofTaskResult
+} from "@twin.org/immutable-proof-task";
 import {
 	ImmutableStorageConnectorFactory,
 	ImmutableStorageTypes,
@@ -106,6 +112,12 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	private readonly _proofHashKeyId: string;
 
 	/**
+	 * The identity connector type.
+	 * @internal
+	 */
+	private readonly _identityConnectorType: string;
+
+	/**
 	 * Create a new instance of ImmutableProofService.
 	 * @param options The dependencies for the immutable proof connector.
 	 * @param options.config The configuration for the connector.
@@ -133,9 +145,9 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			options?.immutableStorageType ?? "immutable-storage"
 		);
 
-		this._identityConnector = IdentityConnectorFactory.get(
-			options?.identityConnectorType ?? "identity"
-		);
+		this._identityConnectorType = options?.identityConnectorType ?? "identity";
+
+		this._identityConnector = IdentityConnectorFactory.get(this._identityConnectorType);
 
 		this._backgroundTaskConnector = BackgroundTaskConnectorFactory.get(
 			options?.backgroundTaskConnectorType ?? "background-task"
@@ -145,10 +157,12 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		this._assertionMethodId = this._config.assertionMethodId ?? "immutable-proof-assertion";
 		this._proofHashKeyId = this._config.proofHashKeyId ?? "immutable-proof-hash";
 
-		this._backgroundTaskConnector.registerHandler<ImmutableProof, unknown>(
-			"immutable-proof",
-			async proof => this.processProof(proof)
-		);
+		this._backgroundTaskConnector.registerHandler<
+			IImmutableProofTaskPayload,
+			IImmutableProofTaskResult
+		>("immutable-proof", "@twin.org/immutable-proof-task", "processProofTask", async task => {
+			await this.finaliseTask(task);
+		});
 	}
 
 	/**
@@ -190,7 +204,18 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			};
 			await this._proofStorage.set(proofEntity);
 
-			await this._backgroundTaskConnector.create("immutable-proof", proofEntity);
+			const immutableProof: IImmutableProof = this.proofEntityToJsonLd(proofEntity);
+			const hashData = await this.generateHashData(proofEntity.nodeIdentity, immutableProof);
+
+			const proofTaskPayload: IImmutableProofTaskPayload = {
+				proofId: id,
+				nodeIdentity,
+				identityConnectorType: this._identityConnectorType,
+				assertionMethodId: this._assertionMethodId,
+				hashData: Converter.bytesToHex(hashData)
+			};
+
+			await this._backgroundTaskConnector.create("immutable-proof", proofTaskPayload);
 
 			return new Urn(ImmutableProofService.NAMESPACE, id).toString();
 		} catch (error) {
@@ -349,36 +374,38 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	 * @param proofEntity The proof entity to process.
 	 * @internal
 	 */
-	private async processProof(proofEntity: ImmutableProof): Promise<void> {
-		const immutableProof: IImmutableProof = this.proofEntityToJsonLd(proofEntity);
+	private async finaliseTask(
+		task: IBackgroundTask<IImmutableProofTaskPayload, IImmutableProofTaskResult>
+	): Promise<void> {
+		if (task.status === TaskStatus.Success && Is.object(task.payload) && Is.object(task.result)) {
+			const proofEntity = await this._proofStorage.get(task.payload.proofId);
 
-		const hashData = await this.generateHashData(proofEntity.nodeIdentity, immutableProof);
+			if (Is.object(proofEntity)) {
+				const immutableProof: IImmutableProof = this.proofEntityToJsonLd(proofEntity);
 
-		// As we are adding the proof to the data we update its context
-		immutableProof["@context"] = [
-			ImmutableProofTypes.ContextRoot,
-			DidContexts.ContextVCDataIntegrity
-		];
-		immutableProof.proof = await this._identityConnector.createProof(
-			proofEntity.nodeIdentity,
-			`${proofEntity.nodeIdentity}#${this._assertionMethodId}`,
-			hashData
-		);
+				// As we are adding the proof to the data we update its context
+				immutableProof["@context"] = [
+					ImmutableProofTypes.ContextRoot,
+					DidContexts.ContextVCDataIntegrity
+				];
+				immutableProof.proof = task.result.proof;
 
-		if (Is.stringValue(immutableProof.proof.created)) {
-			proofEntity.dateCreated = immutableProof.proof.created;
+				if (Is.stringValue(immutableProof.proof.created)) {
+					proofEntity.dateCreated = immutableProof.proof.created;
+				}
+
+				const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
+
+				const immutableStoreResult = await this._immutableStorage.store(
+					proofEntity.nodeIdentity,
+					ObjectHelper.toBytes(compacted)
+				);
+
+				proofEntity.immutableStorageId = immutableStoreResult.id;
+
+				await this._proofStorage.set(proofEntity);
+			}
 		}
-
-		const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
-
-		const immutableStoreResult = await this._immutableStorage.store(
-			proofEntity.nodeIdentity,
-			ObjectHelper.toBytes(compacted)
-		);
-
-		proofEntity.immutableStorageId = immutableStoreResult.id;
-
-		await this._proofStorage.set(proofEntity);
 	}
 
 	/**

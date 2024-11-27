@@ -16,7 +16,13 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        package: [immutable-proof-models, immutable-proof-service, immutable-proof-rest-client]
+        package:
+          [
+            immutable-proof-models,
+            immutable-proof-task,
+            immutable-proof-service,
+            immutable-proof-rest-client
+          ]
 
     steps:
       - name: Checkout

@@ -9,6 +9,7 @@ on:
         type: choice
         options:
           - immutable-proof-models
+          - immutable-proof-task
           - immutable-proof-service
           - immutable-proof-rest-client
 
