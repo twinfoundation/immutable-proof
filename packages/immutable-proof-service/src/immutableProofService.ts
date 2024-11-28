@@ -242,7 +242,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		}
 
 		try {
-			const { immutableProof } = await this.internalGet(id);
+			const { immutableProof } = await this.internalGet(id, false);
 
 			const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
 
@@ -255,14 +255,10 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	/**
 	 * Verify an authentication proof.
 	 * @param id The id of the proof to verify.
-	 * @param proofObject The object to verify as JSON-LD.
 	 * @returns The result of the verification and any failures.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	public async verify(
-		id: string,
-		proofObject: IJsonLdNodeObject
-	): Promise<IImmutableProofVerification> {
+	public async verify(id: string): Promise<IImmutableProofVerification> {
 		Guards.stringValue(this.CLASS_NAME, nameof(id), id);
 
 		const urnParsed = Urn.fromValidString(id);
@@ -275,7 +271,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		}
 
 		try {
-			const { verified, failure } = await this.internalGet(id, proofObject);
+			const { verified, failure } = await this.internalGet(id, true);
 
 			return {
 				"@context": ImmutableProofTypes.ContextRoot,
@@ -411,14 +407,14 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	/**
 	 * Verify an authentication proof.
 	 * @param id The id of the proof to verify.
-	 * @param proofObject The object to verify as JSON-LD.
+	 * @param verify Validate the proof.
 	 * @returns The result of the verification and any failures.
 	 * @throws NotFoundError if the proof is not found.
 	 * @internal
 	 */
 	private async internalGet(
 		id: string,
-		proofObject?: IJsonLdNodeObject
+		verify: boolean
 	): Promise<{
 		verified: boolean;
 		failure?: ImmutableProofFailure;
@@ -448,7 +444,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 					proofModel["@context"].push(ImmutableStorageTypes.ContextRoot);
 				}
 
-				if (Is.object(proofModel.proof) && Is.object(proofObject)) {
+				if (verify && Is.object(proofModel.proof)) {
 					if (proofModel.proof.cryptosuite !== DidCryptoSuites.EdDSAJcs2022) {
 						failure = ImmutableProofFailure.CryptoSuiteMismatch;
 					} else if (proofModel.proof.type !== DidTypes.DataIntegrityProof) {

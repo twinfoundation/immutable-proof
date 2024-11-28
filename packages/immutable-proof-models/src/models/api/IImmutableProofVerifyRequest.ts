@@ -1,6 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { IJsonLdNodeObject } from "@twin.org/data-json-ld";
 import type { HeaderTypes, MimeTypes } from "@twin.org/web";
 
 /**
@@ -22,15 +21,5 @@ export interface IImmutableProofVerifyRequest {
 		 * The id of the immutable proof to verify.
 		 */
 		id: string;
-	};
-
-	/**
-	 * The parameters from the body.
-	 */
-	body: {
-		/**
-		 * The proof object to verify.
-		 */
-		proofObject: IJsonLdNodeObject;
 	};
 }

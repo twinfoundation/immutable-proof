@@ -196,13 +196,6 @@ export function generateRestRoutesImmutableProof(
 					request: {
 						pathParams: {
 							id: "ais:1234567890"
-						},
-						body: {
-							proofObject: {
-								"@context": "http://schema.org",
-								type: "Person",
-								name: "John Smith"
-							}
 						}
 					}
 				}
@@ -327,12 +320,11 @@ export async function immutableProofVerify(
 		request.pathParams
 	);
 	Guards.stringValue(ROUTES_SOURCE, nameof(request.pathParams.id), request.pathParams.id);
-	Guards.object(ROUTES_SOURCE, nameof(request.body.proofObject), request.body.proofObject);
 
 	const mimeType = request.headers?.[HeaderTypes.Accept] === MimeTypes.JsonLd ? "jsonld" : "json";
 
 	const component = ComponentFactory.get<IImmutableProofComponent>(componentName);
-	const result = await component.verify(request.pathParams.id, request.body.proofObject);
+	const result = await component.verify(request.pathParams.id);
 
 	return {
 		headers: {

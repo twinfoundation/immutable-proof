@@ -33,11 +33,10 @@ export interface IImmutableProofComponent extends IComponent {
 	/**
 	 * Verify an authentication proof.
 	 * @param id The id of the proof to verify.
-	 * @param proofObject The object to verify as JSON-LD.
 	 * @returns The result of the verification and any failures.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	verify(id: string, proofObject: IJsonLdNodeObject): Promise<IImmutableProofVerification>;
+	verify(id: string): Promise<IImmutableProofVerification>;
 
 	/**
 	 * Remove the immutable storage for the proof.

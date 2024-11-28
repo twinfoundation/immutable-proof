@@ -79,16 +79,11 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 	/**
 	 * Verify an authentication proof.
 	 * @param id The id of the proof to verify.
-	 * @param proofObject The object to verify as JSON-LD.
 	 * @returns The result of the verification and any failures.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	public async verify(
-		id: string,
-		proofObject: IJsonLdNodeObject
-	): Promise<IImmutableProofVerification> {
+	public async verify(id: string): Promise<IImmutableProofVerification> {
 		Guards.stringValue(this.CLASS_NAME, nameof(id), id);
-		Guards.object(this.CLASS_NAME, nameof(proofObject), proofObject);
 
 		const response = await this.fetch<IImmutableProofVerifyRequest, IImmutableProofVerifyResponse>(
 			"/:id",
@@ -99,9 +94,6 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 				},
 				pathParams: {
 					id
-				},
-				body: {
-					proofObject
 				}
 			}
 		);
