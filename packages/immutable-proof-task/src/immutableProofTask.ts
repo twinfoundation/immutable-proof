@@ -32,7 +32,7 @@ export async function processProofTask(
 	Guards.stringValue(CLASS_NAME, nameof(payload.assertionMethodId), payload.assertionMethodId);
 
 	const engine = new EngineCore();
-	engine.populateClone(engineCloneData);
+	engine.populateClone(engineCloneData, true);
 	await engine.start();
 
 	const identityConnector = IdentityConnectorFactory.get(payload.identityConnectorType);
