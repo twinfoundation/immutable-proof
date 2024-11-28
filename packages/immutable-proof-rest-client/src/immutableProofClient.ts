@@ -61,7 +61,7 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 		Guards.stringValue(this.CLASS_NAME, nameof(id), id);
 
 		const response = await this.fetch<IImmutableProofGetRequest, IImmutableProofGetResponse>(
-			"/:id/:entryId",
+			"/:id",
 			"GET",
 			{
 				headers: {
