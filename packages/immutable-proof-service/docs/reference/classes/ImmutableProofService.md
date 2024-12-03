@@ -40,6 +40,10 @@ The identity connector type, defaults to "identity".
 
 The background task connector type, defaults to "background-task".
 
+• **options.eventBusComponentType?**: `string`
+
+The event bus component type, defaults to no event bus.
+
 • **options.config?**: [`IImmutableProofServiceConfig`](../interfaces/IImmutableProofServiceConfig.md)
 
 The configuration for the connector.

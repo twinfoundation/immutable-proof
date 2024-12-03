@@ -7,6 +7,7 @@ import {
 	type IBackgroundTaskConnector
 } from "@twin.org/background-task-models";
 import {
+	ComponentFactory,
 	Converter,
 	GeneralError,
 	Guards,
@@ -26,9 +27,12 @@ import {
 	EntityStorageConnectorFactory,
 	type IEntityStorageConnector
 } from "@twin.org/entity-storage-models";
+import type { IEventBusComponent } from "@twin.org/event-bus-models";
 import { IdentityConnectorFactory, type IIdentityConnector } from "@twin.org/identity-models";
 import {
+	type IImmutableProofEventBusProofCreated,
 	ImmutableProofFailure,
+	ImmutableProofTopics,
 	ImmutableProofTypes,
 	type IImmutableProof,
 	type IImmutableProofComponent,
@@ -100,6 +104,12 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	private readonly _backgroundTaskConnector: IBackgroundTaskConnector;
 
 	/**
+	 * The event bus component.
+	 * @internal
+	 */
+	private readonly _eventBusComponent?: IEventBusComponent;
+
+	/**
 	 * The assertion method id to use for the proofs.
 	 * @internal
 	 */
@@ -126,6 +136,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	 * @param options.immutableStorageType The immutable storage, defaults to "immutable-storage".
 	 * @param options.identityConnectorType The identity connector type, defaults to "identity".
 	 * @param options.backgroundTaskConnectorType The background task connector type, defaults to "background-task".
+	 * @param options.eventBusComponentType The event bus component type, defaults to no event bus.
 	 */
 	constructor(options?: {
 		vaultConnectorType?: string;
@@ -133,6 +144,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		immutableStorageType?: string;
 		identityConnectorType?: string;
 		backgroundTaskConnectorType?: string;
+		eventBusComponentType?: string;
 		config?: IImmutableProofServiceConfig;
 	}) {
 		this._vaultConnector = VaultConnectorFactory.get(options?.vaultConnectorType ?? "vault");
@@ -152,6 +164,10 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		this._backgroundTaskConnector = BackgroundTaskConnectorFactory.get(
 			options?.backgroundTaskConnectorType ?? "background-task"
 		);
+
+		if (Is.stringValue(options?.eventBusComponentType)) {
+			this._eventBusComponent = ComponentFactory.get(options.eventBusComponentType);
+		}
 
 		this._config = options?.config ?? {};
 		this._assertionMethodId = this._config.assertionMethodId ?? "immutable-proof-assertion";
@@ -400,6 +416,11 @@ export class ImmutableProofService implements IImmutableProofComponent {
 				proofEntity.immutableStorageId = immutableStoreResult.id;
 
 				await this._proofStorage.set(proofEntity);
+
+				await this._eventBusComponent?.publish<IImmutableProofEventBusProofCreated>(
+					ImmutableProofTopics.ProofCreated,
+					{ id: new Urn(ImmutableProofService.NAMESPACE, task.payload.proofId).toString() }
+				);
 			}
 		}
 	}
