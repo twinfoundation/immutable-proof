@@ -1,8 +1,8 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { Converter, Guards } from "@twin.org/core";
+import { Converter, Guards, Is } from "@twin.org/core";
 import { EngineCore } from "@twin.org/engine-core";
-import type { IEngineCoreClone } from "@twin.org/engine-models";
+import type { IEngineCore, IEngineCoreClone } from "@twin.org/engine-models";
 import { IdentityConnectorFactory } from "@twin.org/identity-models";
 import { nameof } from "@twin.org/nameof";
 import type { IImmutableProofTaskPayload } from "./models/IImmutableProofTaskPayload";
@@ -31,20 +31,27 @@ export async function processProofTask(
 	Guards.stringHex(CLASS_NAME, nameof(payload.hashData), payload.hashData);
 	Guards.stringValue(CLASS_NAME, nameof(payload.assertionMethodId), payload.assertionMethodId);
 
-	const engine = new EngineCore();
-	engine.populateClone(engineCloneData, true);
-	await engine.start();
+	let engine: IEngineCore | undefined;
+	try {
+		engine = new EngineCore();
+		engine.populateClone(engineCloneData, true);
+		await engine.start();
 
-	const identityConnector = IdentityConnectorFactory.get(payload.identityConnectorType);
+		const identityConnector = IdentityConnectorFactory.get(payload.identityConnectorType);
 
-	const proof = await identityConnector.createProof(
-		payload.nodeIdentity,
-		`${payload.nodeIdentity}#${payload.assertionMethodId}`,
-		Converter.hexToBytes(payload.hashData)
-	);
+		const proof = await identityConnector.createProof(
+			payload.nodeIdentity,
+			`${payload.nodeIdentity}#${payload.assertionMethodId}`,
+			Converter.hexToBytes(payload.hashData)
+		);
 
-	return {
-		proofId: payload.proofId,
-		proof
-	};
+		return {
+			proofId: payload.proofId,
+			proof
+		};
+	} finally {
+		if (!Is.empty(engine)) {
+			await engine.stop();
+		}
+	}
 }
