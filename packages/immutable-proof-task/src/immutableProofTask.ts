@@ -20,7 +20,6 @@ export async function processProofTask(
 	engineCloneData: IEngineCoreClone,
 	payload: IImmutableProofTaskPayload
 ): Promise<IImmutableProofTaskResult> {
-	Guards.objectValue(CLASS_NAME, nameof(engineCloneData), engineCloneData);
 	Guards.objectValue(CLASS_NAME, nameof(payload), payload);
 	Guards.stringValue(CLASS_NAME, nameof(payload.nodeIdentity), payload.nodeIdentity);
 	Guards.stringValue(
@@ -33,9 +32,13 @@ export async function processProofTask(
 
 	let engine: IEngineCore | undefined;
 	try {
-		engine = new EngineCore();
-		engine.populateClone(engineCloneData, true);
-		await engine.start();
+		if (!Is.empty(engineCloneData)) {
+			// If the clone data is not empty we use it to create a new engine as it's a new thread
+			// otherwise we assume the factories are already populated.
+			engine = new EngineCore();
+			engine.populateClone(engineCloneData, true);
+			await engine.start();
+		}
 
 		const identityConnector = IdentityConnectorFactory.get(payload.identityConnectorType);
 

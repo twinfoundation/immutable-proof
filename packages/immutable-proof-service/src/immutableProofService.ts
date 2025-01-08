@@ -52,6 +52,7 @@ import { DidContexts, DidCryptoSuites, DidTypes } from "@twin.org/standards-w3c-
 import { VaultConnectorFactory, type IVaultConnector } from "@twin.org/vault-models";
 import type { ImmutableProof } from "./entities/immutableProof";
 import type { IImmutableProofServiceConfig } from "./models/IImmutableProofServiceConfig";
+import type { IImmutableProofServiceConstructorOptions } from "./models/IImmutableProofServiceConstructorOptions";
 
 /**
  * Class for performing immutable proof operations.
@@ -130,23 +131,8 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	/**
 	 * Create a new instance of ImmutableProofService.
 	 * @param options The dependencies for the immutable proof connector.
-	 * @param options.config The configuration for the connector.
-	 * @param options.vaultConnectorType The vault connector type, defaults to "vault".
-	 * @param options.immutableProofEntityStorageType The entity storage for proofs, defaults to "immutable-proof".
-	 * @param options.immutableStorageType The immutable storage, defaults to "immutable-storage".
-	 * @param options.identityConnectorType The identity connector type, defaults to "identity".
-	 * @param options.backgroundTaskConnectorType The background task connector type, defaults to "background-task".
-	 * @param options.eventBusComponentType The event bus component type, defaults to no event bus.
 	 */
-	constructor(options?: {
-		vaultConnectorType?: string;
-		immutableProofEntityStorageType?: string;
-		immutableStorageType?: string;
-		identityConnectorType?: string;
-		backgroundTaskConnectorType?: string;
-		eventBusComponentType?: string;
-		config?: IImmutableProofServiceConfig;
-	}) {
+	constructor(options?: IImmutableProofServiceConstructorOptions) {
 		this._vaultConnector = VaultConnectorFactory.get(options?.vaultConnectorType ?? "vault");
 
 		this._proofStorage = EntityStorageConnectorFactory.get(

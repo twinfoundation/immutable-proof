@@ -15,6 +15,7 @@ import {
 	initSchema as initSchemaImmutableStorage
 } from "@twin.org/immutable-storage-connector-entity-storage";
 import { ImmutableStorageConnectorFactory } from "@twin.org/immutable-storage-models";
+import { ModuleHelper } from "@twin.org/modules";
 import { nameof } from "@twin.org/nameof";
 import {
 	cleanupTestEnv,
@@ -98,6 +99,13 @@ describe("ImmutableProofService", () => {
 			.mockImplementationOnce(length => new Uint8Array(length).fill(13))
 			.mockImplementationOnce(length => new Uint8Array(length).fill(14))
 			.mockImplementation(length => new Uint8Array(length).fill(15));
+
+		// Mock the module helper to execute the method in the same thread, so we don't have to create an engine
+		ModuleHelper.execModuleMethodThread = vi
+			.fn()
+			.mockImplementation(async (module, method, args) =>
+				ModuleHelper.execModuleMethod(module, method, args)
+			);
 	});
 
 	afterAll(async () => {
