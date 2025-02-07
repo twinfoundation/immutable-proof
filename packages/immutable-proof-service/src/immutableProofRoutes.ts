@@ -184,8 +184,8 @@ export function generateRestRoutesImmutableProof(
 		operationId: "immutableProofVerify",
 		summary: "Verify a proof",
 		tag: tagsImmutableProof[0].name,
-		method: "POST",
-		path: `${baseRouteName}/:id`,
+		method: "GET",
+		path: `${baseRouteName}/:id/verify`,
 		handler: async (httpRequestContext, request) =>
 			immutableProofVerify(httpRequestContext, componentName, request),
 		requestType: {
