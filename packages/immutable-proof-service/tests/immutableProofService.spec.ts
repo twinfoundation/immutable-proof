@@ -122,7 +122,7 @@ describe("ImmutableProofService", () => {
 
 		const proofId = await service.create(
 			{
-				"@context": "http://schema.org/",
+				"@context": "https://schema.org",
 				type: "Person",
 				id: "123",
 				name: "John Smith"
@@ -144,7 +144,7 @@ describe("ImmutableProofService", () => {
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 				dateCreated: "2024-08-22T11:55:16.271Z",
 				proofObjectId: "123",
-				proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y="
+				proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E="
 			}
 		]);
 	});
@@ -154,7 +154,7 @@ describe("ImmutableProofService", () => {
 
 		const proofId = await service.create(
 			{
-				"@context": "http://schema.org/",
+				"@context": "https://schema.org",
 				type: "Person",
 				id: "123",
 				name: "John Smith"
@@ -174,7 +174,7 @@ describe("ImmutableProofService", () => {
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363",
 				userIdentity:
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
-				proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y=",
+				proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
 				dateCreated: "2024-08-22T11:55:16.271Z",
 				proofObjectId: "123"
 			}
@@ -188,7 +188,7 @@ describe("ImmutableProofService", () => {
 			userIdentity:
 				"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 			proofObjectId: "123",
-			proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y="
+			proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E="
 		});
 	});
 
@@ -199,7 +199,7 @@ describe("ImmutableProofService", () => {
 
 		const proofId = await service.create(
 			{
-				"@context": "http://schema.org/",
+				"@context": "https://schema.org",
 				type: "Person",
 				id: "123",
 				name: "John Smith"
@@ -222,7 +222,7 @@ describe("ImmutableProofService", () => {
 				userIdentity:
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 				proofObjectId: "123",
-				proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y=",
+				proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
 				immutableStorageId:
 					"immutable:entity-storage:0303030303030303030303030303030303030303030303030303030303030303"
 			}
@@ -237,7 +237,7 @@ describe("ImmutableProofService", () => {
 			],
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
 			type: "ImmutableProof",
-			proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y=",
+			proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
 			proofObjectId: "123",
 			userIdentity:
 				"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
@@ -246,7 +246,7 @@ describe("ImmutableProofService", () => {
 				cryptosuite: "eddsa-jcs-2022",
 				proofPurpose: "assertionMethod",
 				proofValue:
-					"5nGVyYtMuBRy6S3C2vABq6zZT1JirtDQogmHH6fC4LRALHzNnud5n2wC3eWECxtnXXpda1tcRoLuJEExCxDfi7Rr",
+					"53R3f68fVbsw9EG2ttZVmeJ4oqssyhZrtKodwiyYPXVH7VGfzDnuqHexJsjkxV87PZSDZSR6CzAhEvHLJU8sx8fP",
 				verificationMethod:
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363#immutable-proof-assertion"
 			},
@@ -269,7 +269,7 @@ describe("ImmutableProofService", () => {
 		const service = new ImmutableProofService();
 
 		const proofObject = {
-			"@context": "http://schema.org/",
+			"@context": "https://schema.org",
 			type: "Person",
 			id: "123",
 			name: "John Smith"
@@ -285,7 +285,7 @@ describe("ImmutableProofService", () => {
 			"@context": "https://schema.twindev.org/immutable-proof/",
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
 			type: "ImmutableProof",
-			proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y=",
+			proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
 			proofObjectId: "123",
 			userIdentity:
 				"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858"
@@ -301,11 +301,11 @@ describe("ImmutableProofService", () => {
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 				dateCreated: "2024-08-22T11:55:16.271Z",
 				proofObjectId: "123",
-				proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y="
+				proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E="
 			}
 		]);
 
-		const result = await service.verify(proofId, proofObject);
+		const result = await service.verify(proofId);
 		expect(result).toEqual({
 			"@context": "https://schema.twindev.org/immutable-proof/",
 			type: "ImmutableProofVerification",
@@ -320,7 +320,7 @@ describe("ImmutableProofService", () => {
 		const service = new ImmutableProofService();
 
 		const proofObject = {
-			"@context": "http://schema.org/",
+			"@context": "https://schema.org",
 			type: "Person",
 			id: "123",
 			name: "John Smith"
@@ -342,7 +342,7 @@ describe("ImmutableProofService", () => {
 			],
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
 			type: "ImmutableProof",
-			proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y=",
+			proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
 			proofObjectId: "123",
 			userIdentity:
 				"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
@@ -351,7 +351,7 @@ describe("ImmutableProofService", () => {
 				cryptosuite: "eddsa-jcs-2022",
 				proofPurpose: "assertionMethod",
 				proofValue:
-					"5nGVyYtMuBRy6S3C2vABq6zZT1JirtDQogmHH6fC4LRALHzNnud5n2wC3eWECxtnXXpda1tcRoLuJEExCxDfi7Rr",
+					"53R3f68fVbsw9EG2ttZVmeJ4oqssyhZrtKodwiyYPXVH7VGfzDnuqHexJsjkxV87PZSDZSR6CzAhEvHLJU8sx8fP",
 				verificationMethod:
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363#immutable-proof-assertion"
 			},
@@ -369,7 +369,7 @@ describe("ImmutableProofService", () => {
 				userIdentity:
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 				proofObjectId: "123",
-				proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y=",
+				proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
 				immutableStorageId:
 					"immutable:entity-storage:0303030303030303030303030303030303030303030303030303030303030303"
 			}
@@ -384,7 +384,7 @@ describe("ImmutableProofService", () => {
 			}
 		]);
 
-		const result = await service.verify(proofId, proofObject);
+		const result = await service.verify(proofId);
 		expect(result).toEqual({
 			"@context": "https://schema.twindev.org/immutable-proof/",
 			type: "ImmutableProofVerification",
