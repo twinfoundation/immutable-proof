@@ -63,7 +63,7 @@ export function generateRestRoutesImmutableProof(
 					request: {
 						body: {
 							proofObject: {
-								"@context": "http://schema.org",
+								"@context": "https://schema.org",
 								type: "Person",
 								name: "John Smith"
 							}
