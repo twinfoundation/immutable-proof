@@ -34,7 +34,7 @@ describe("ImmutableDataTypes", () => {
 			"",
 			ImmutableProofTypes.ImmutableProof,
 			{
-				"@context": [ImmutableProofTypes.ContextRoot],
+				"@context": [ImmutableProofTypes.ContextRoot, ImmutableProofTypes.ContextRootCommon],
 				type: ImmutableProofTypes.ImmutableProof,
 				id: "proof:123456",
 				userIdentity: "user-1",
@@ -53,7 +53,7 @@ describe("ImmutableDataTypes", () => {
 			"",
 			ImmutableProofTypes.ImmutableProof,
 			{
-				"@context": [ImmutableProofTypes.ContextRoot],
+				"@context": [ImmutableProofTypes.ContextRoot, ImmutableProofTypes.ContextRootCommon],
 				type: ImmutableProofTypes.ImmutableProof,
 				id: "proof:123456",
 				userIdentity: "user-1",

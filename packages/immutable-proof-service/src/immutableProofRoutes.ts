@@ -125,7 +125,10 @@ export function generateRestRoutesImmutableProof(
 						id: "immutableProofGetResponseExample",
 						response: {
 							body: {
-								"@context": ImmutableProofTypes.ContextRoot,
+								"@context": [
+									ImmutableProofTypes.ContextRoot,
+									ImmutableProofTypes.ContextRootCommon
+								],
 								type: ImmutableProofTypes.ImmutableProof,
 								id: "ais:1234567890",
 								userIdentity: "user-1",
@@ -155,7 +158,10 @@ export function generateRestRoutesImmutableProof(
 								[HeaderTypes.ContentType]: MimeTypes.JsonLd
 							},
 							body: {
-								"@context": ImmutableProofTypes.ContextRoot,
+								"@context": [
+									ImmutableProofTypes.ContextRoot,
+									ImmutableProofTypes.ContextRootCommon
+								],
 								type: ImmutableProofTypes.ImmutableProof,
 								id: "ais:1234567890",
 								userIdentity: "user-1",

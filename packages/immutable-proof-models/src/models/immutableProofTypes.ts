@@ -12,6 +12,11 @@ export const ImmutableProofTypes = {
 	ContextRoot: "https://schema.twindev.org/immutable-proof/",
 
 	/**
+	 * The context root for the common types.
+	 */
+	ContextRootCommon: "https://schema.twindev.org/common/",
+
+	/**
 	 * Represents Immutable Proof.
 	 */
 	ImmutableProof: "ImmutableProof",

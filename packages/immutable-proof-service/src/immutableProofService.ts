@@ -356,7 +356,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	 */
 	private proofEntityToJsonLd(proofEntity: ImmutableProof): IImmutableProof {
 		const model: IImmutableProof = {
-			"@context": ImmutableProofTypes.ContextRoot,
+			"@context": [ImmutableProofTypes.ContextRoot, ImmutableProofTypes.ContextRootCommon],
 			type: ImmutableProofTypes.ImmutableProof,
 			id: proofEntity.id,
 			userIdentity: proofEntity.userIdentity,
@@ -384,6 +384,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 				// As we are adding the proof to the data we update its context
 				immutableProof["@context"] = [
 					ImmutableProofTypes.ContextRoot,
+					ImmutableProofTypes.ContextRootCommon,
 					DidContexts.ContextVCDataIntegrity
 				];
 				immutableProof.proof = task.result.proof;
@@ -497,7 +498,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		// We hash the data for the proof without the the proof or immutable receipt for the proof
 		// without these objects we can simplify the context
 		const object = ObjectHelper.omit(immutableProof, ["proof", "immutableReceipt"]);
-		object["@context"] = ImmutableProofTypes.ContextRoot;
+		object["@context"] = [ImmutableProofTypes.ContextRoot, ImmutableProofTypes.ContextRootCommon];
 
 		const canonicalDocument = JsonHelper.canonicalize(object);
 

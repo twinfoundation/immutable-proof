@@ -182,7 +182,10 @@ describe("ImmutableProofService", () => {
 
 		const proof = await service.get(proofId);
 		expect(proof).toEqual({
-			"@context": "https://schema.twindev.org/immutable-proof/",
+			"@context": [
+				"https://schema.twindev.org/immutable-proof/",
+				"https://schema.twindev.org/common/"
+			],
 			type: "ImmutableProof",
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
 			userIdentity:
@@ -232,6 +235,7 @@ describe("ImmutableProofService", () => {
 		expect(proof).toMatchObject({
 			"@context": [
 				"https://schema.twindev.org/immutable-proof/",
+				"https://schema.twindev.org/common/",
 				"https://w3id.org/security/data-integrity/v2",
 				"https://schema.twindev.org/immutable-storage/"
 			],
@@ -246,7 +250,7 @@ describe("ImmutableProofService", () => {
 				cryptosuite: "eddsa-jcs-2022",
 				proofPurpose: "assertionMethod",
 				proofValue:
-					"53R3f68fVbsw9EG2ttZVmeJ4oqssyhZrtKodwiyYPXVH7VGfzDnuqHexJsjkxV87PZSDZSR6CzAhEvHLJU8sx8fP",
+					"5dJah2AJtmuJ86UHHMTjxEkpm78fwmruHC3BqYocJK6CWEqDyRfZjWV4F6cSA3W2Zik5NSWUC9hyfmLfs5uRrFBb",
 				verificationMethod:
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363#immutable-proof-assertion"
 			},
@@ -282,7 +286,10 @@ describe("ImmutableProofService", () => {
 
 		const proof = await service.get(proofId);
 		expect(proof).toEqual({
-			"@context": "https://schema.twindev.org/immutable-proof/",
+			"@context": [
+				"https://schema.twindev.org/immutable-proof/",
+				"https://schema.twindev.org/common/"
+			],
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
 			type: "ImmutableProof",
 			proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
@@ -337,6 +344,7 @@ describe("ImmutableProofService", () => {
 		expect(proof).toMatchObject({
 			"@context": [
 				"https://schema.twindev.org/immutable-proof/",
+				"https://schema.twindev.org/common/",
 				"https://w3id.org/security/data-integrity/v2",
 				"https://schema.twindev.org/immutable-storage/"
 			],
@@ -351,7 +359,7 @@ describe("ImmutableProofService", () => {
 				cryptosuite: "eddsa-jcs-2022",
 				proofPurpose: "assertionMethod",
 				proofValue:
-					"53R3f68fVbsw9EG2ttZVmeJ4oqssyhZrtKodwiyYPXVH7VGfzDnuqHexJsjkxV87PZSDZSR6CzAhEvHLJU8sx8fP",
+					"5dJah2AJtmuJ86UHHMTjxEkpm78fwmruHC3BqYocJK6CWEqDyRfZjWV4F6cSA3W2Zik5NSWUC9hyfmLfs5uRrFBb",
 				verificationMethod:
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363#immutable-proof-assertion"
 			},

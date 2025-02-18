@@ -11,9 +11,11 @@ export interface IImmutableProof {
 	/**
 	 * JSON-LD Context.
 	 */
-	"@context":
-		| typeof ImmutableProofTypes.ContextRoot
-		| [typeof ImmutableProofTypes.ContextRoot, ...IJsonLdContextDefinitionElement[]];
+	"@context": [
+		typeof ImmutableProofTypes.ContextRoot,
+		typeof ImmutableProofTypes.ContextRootCommon,
+		...IJsonLdContextDefinitionElement[]
+	];
 
 	/**
 	 * JSON-LD Type.
