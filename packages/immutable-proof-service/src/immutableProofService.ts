@@ -111,10 +111,10 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	private readonly _eventBusComponent?: IEventBusComponent;
 
 	/**
-	 * The assertion method id to use for the proofs.
+	 * The verification method id to use for the proofs.
 	 * @internal
 	 */
-	private readonly _assertionMethodId: string;
+	private readonly _verificationMethodId: string;
 
 	/**
 	 * The proof hash key id to use for the proofs.
@@ -156,7 +156,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		}
 
 		this._config = options?.config ?? {};
-		this._assertionMethodId = this._config.assertionMethodId ?? "immutable-proof-assertion";
+		this._verificationMethodId = this._config.verificationMethodId ?? "immutable-proof-assertion";
 		this._proofHashKeyId = this._config.proofHashKeyId ?? "immutable-proof-hash";
 
 		this._backgroundTaskConnector.registerHandler<
@@ -213,7 +213,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 				proofId: id,
 				nodeIdentity,
 				identityConnectorType: this._identityConnectorType,
-				assertionMethodId: this._assertionMethodId,
+				assertionMethodId: this._verificationMethodId,
 				hashData: Converter.bytesToHex(hashData)
 			};
 
