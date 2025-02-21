@@ -30,12 +30,12 @@ import {
 import type { IEventBusComponent } from "@twin.org/event-bus-models";
 import { IdentityConnectorFactory, type IIdentityConnector } from "@twin.org/identity-models";
 import {
-	type IImmutableProofEventBusProofCreated,
 	ImmutableProofFailure,
 	ImmutableProofTopics,
 	ImmutableProofTypes,
 	type IImmutableProof,
 	type IImmutableProofComponent,
+	type IImmutableProofEventBusProofCreated,
 	type IImmutableProofVerification
 } from "@twin.org/immutable-proof-models";
 import type {
@@ -44,7 +44,6 @@ import type {
 } from "@twin.org/immutable-proof-task";
 import {
 	ImmutableStorageConnectorFactory,
-	ImmutableStorageTypes,
 	type IImmutableStorageConnector
 } from "@twin.org/immutable-storage-models";
 import { nameof } from "@twin.org/nameof";
@@ -434,7 +433,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			throw new NotFoundError(this.CLASS_NAME, "proofNotFound", id);
 		}
 
-		let proofModel = await this.proofEntityToJsonLd(proofEntity);
+		let proofJsonLd = await this.proofEntityToJsonLd(proofEntity);
 		let verified = false;
 		let failure: ImmutableProofFailure | undefined = ImmutableProofFailure.NotIssued;
 
@@ -443,24 +442,29 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			const immutableResult = await this._immutableStorage.get(proofEntity.immutableStorageId);
 
 			if (Is.uint8Array(immutableResult.data)) {
-				proofModel = ObjectHelper.fromBytes<IImmutableProof>(immutableResult.data);
-				proofModel.immutableReceipt = immutableResult.receipt;
-				// As we are adding the receipt to the data we update its context
-				if (Is.array(proofModel["@context"])) {
-					proofModel["@context"].push(ImmutableStorageTypes.ContextRoot);
+				proofJsonLd = ObjectHelper.fromBytes<IImmutableProof>(immutableResult.data);
+				proofJsonLd.immutableReceipt = immutableResult.receipt;
+
+				// As we are adding the receipt to the data we update the JSON-LD context
+				const receiptContext = immutableResult.receipt["@context"];
+				if (!Is.empty(receiptContext)) {
+					proofJsonLd["@context"] = JsonLdProcessor.combineContexts(
+						proofJsonLd["@context"],
+						receiptContext
+					) as IImmutableProof["@context"];
 				}
 
-				if (verify && Is.object(proofModel.proof)) {
-					if (proofModel.proof.cryptosuite !== DidCryptoSuites.EdDSAJcs2022) {
+				if (verify && Is.object(proofJsonLd.proof)) {
+					if (proofJsonLd.proof.cryptosuite !== DidCryptoSuites.EdDSAJcs2022) {
 						failure = ImmutableProofFailure.CryptoSuiteMismatch;
-					} else if (proofModel.proof.type !== DidTypes.DataIntegrityProof) {
+					} else if (proofJsonLd.proof.type !== DidTypes.DataIntegrityProof) {
 						failure = ImmutableProofFailure.ProofTypeMismatch;
 					} else {
-						const hashData = await this.generateHashData(proofEntity.nodeIdentity, proofModel);
+						const hashData = await this.generateHashData(proofEntity.nodeIdentity, proofJsonLd);
 
 						const isVerified = await this._identityConnector.verifyProof(
 							hashData,
-							proofModel.proof
+							proofJsonLd.proof
 						);
 
 						if (isVerified) {
@@ -475,7 +479,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		}
 
 		return {
-			immutableProof: proofModel,
+			immutableProof: proofJsonLd,
 			verified,
 			failure
 		};
