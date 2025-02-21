@@ -246,7 +246,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		try {
 			const { immutableProof } = await this.internalGet(id, false);
 
-			return JsonLdProcessor.compact(immutableProof);
+			return JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
 		} catch (error) {
 			throw new GeneralError(this.CLASS_NAME, "getFailed", undefined, error);
 		}
@@ -391,7 +391,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 					proofEntity.dateCreated = immutableProof.proof.created;
 				}
 
-				const compacted = await JsonLdProcessor.compact(immutableProof);
+				const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
 
 				const immutableStoreResult = await this._immutableStorage.store(
 					proofEntity.nodeIdentity,
