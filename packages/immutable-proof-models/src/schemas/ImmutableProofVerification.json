@@ -20,11 +20,7 @@
 			"description": "If the verification was unsuccessful the failure reason."
 		}
 	},
-	"required": [
-		"@context",
-		"type",
-		"verified"
-	],
+	"required": ["@context", "type", "verified"],
 	"additionalProperties": false,
 	"description": "Interface describing an immutable proof verification."
 }
