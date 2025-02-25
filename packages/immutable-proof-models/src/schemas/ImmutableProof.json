@@ -49,13 +49,7 @@
 			"description": "The immutable receipt detail for where the proof is stored."
 		}
 	},
-	"required": [
-		"@context",
-		"type",
-		"id",
-		"userIdentity",
-		"proofObjectHash"
-	],
+	"required": ["@context", "type", "id", "userIdentity", "proofObjectHash"],
 	"additionalProperties": false,
 	"description": "Interface describing an immutable proof state."
 }
