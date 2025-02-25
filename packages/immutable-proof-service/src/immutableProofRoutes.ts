@@ -264,7 +264,11 @@ export async function immutableProofCreate(
 	Guards.object(ROUTES_SOURCE, nameof(request.body.proofObject), request.body.proofObject);
 
 	const component = ComponentFactory.get<IImmutableProofComponent>(componentName);
-	const result = await component.create(request.body.proofObject);
+	const result = await component.create(
+		request.body.proofObject,
+		httpRequestContext.userIdentity,
+		httpRequestContext.nodeIdentity
+	);
 
 	return {
 		statusCode: HttpStatusCode.created,
