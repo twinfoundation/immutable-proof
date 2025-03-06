@@ -40,9 +40,16 @@ const FIRST_TICK = 1724327716271;
  */
 async function waitForProofGeneration(proofCount: number = 1): Promise<void> {
 	let count = 0;
+	let generated;
 	do {
+		generated = immutableStorage.getStore().length === proofCount || count++ === proofCount * 40;
+		if (generated) {
+			return;
+		}
 		await new Promise(resolve => setTimeout(resolve, 200));
-	} while (immutableStorage.getStore().length < proofCount && count++ < proofCount * 40);
+	} while (!generated);
+	// eslint-disable-next-line no-restricted-syntax
+	throw new Error("Proof generation timed out");
 }
 
 describe("ImmutableProofService", () => {
@@ -144,7 +151,7 @@ describe("ImmutableProofService", () => {
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 				dateCreated: "2024-08-22T11:55:16.271Z",
 				proofObjectId: "123",
-				proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E="
+				proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc="
 			}
 		]);
 	});
@@ -174,7 +181,7 @@ describe("ImmutableProofService", () => {
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363",
 				userIdentity:
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
-				proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
+				proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc=",
 				dateCreated: "2024-08-22T11:55:16.271Z",
 				proofObjectId: "123"
 			}
@@ -188,10 +195,12 @@ describe("ImmutableProofService", () => {
 			],
 			type: "ImmutableProof",
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
+			nodeIdentity:
+				"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363",
 			userIdentity:
 				"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 			proofObjectId: "123",
-			proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E="
+			proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc="
 		});
 	});
 
@@ -225,7 +234,7 @@ describe("ImmutableProofService", () => {
 				userIdentity:
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 				proofObjectId: "123",
-				proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
+				proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc=",
 				immutableStorageId:
 					"immutable:entity-storage:0303030303030303030303030303030303030303030303030303030303030303"
 			}
@@ -236,12 +245,12 @@ describe("ImmutableProofService", () => {
 			"@context": [
 				"https://schema.twindev.org/immutable-proof/",
 				"https://schema.twindev.org/common/",
-				"https://w3id.org/security/data-integrity/v2",
+				"https://www.w3.org/ns/credentials/v2",
 				"https://schema.twindev.org/immutable-storage/"
 			],
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
 			type: "ImmutableProof",
-			proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
+			proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc=",
 			proofObjectId: "123",
 			userIdentity:
 				"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
@@ -250,7 +259,7 @@ describe("ImmutableProofService", () => {
 				cryptosuite: "eddsa-jcs-2022",
 				proofPurpose: "assertionMethod",
 				proofValue:
-					"5dJah2AJtmuJ86UHHMTjxEkpm78fwmruHC3BqYocJK6CWEqDyRfZjWV4F6cSA3W2Zik5NSWUC9hyfmLfs5uRrFBb",
+					"z4usf9wC8XVqxdtuvfSnijvWGh7xFr5A9zR2SmQUY2H7s9sTJetUZcYk34HoLC7UQs7ayxDEQRUDY8w1rUhE9zqw9",
 				verificationMethod:
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363#immutable-proof-assertion"
 			},
@@ -292,8 +301,10 @@ describe("ImmutableProofService", () => {
 			],
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
 			type: "ImmutableProof",
-			proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
+			proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc=",
 			proofObjectId: "123",
+			nodeIdentity:
+				"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363",
 			userIdentity:
 				"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858"
 		});
@@ -308,7 +319,7 @@ describe("ImmutableProofService", () => {
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 				dateCreated: "2024-08-22T11:55:16.271Z",
 				proofObjectId: "123",
-				proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E="
+				proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc="
 			}
 		]);
 
@@ -345,12 +356,12 @@ describe("ImmutableProofService", () => {
 			"@context": [
 				"https://schema.twindev.org/immutable-proof/",
 				"https://schema.twindev.org/common/",
-				"https://w3id.org/security/data-integrity/v2",
+				"https://www.w3.org/ns/credentials/v2",
 				"https://schema.twindev.org/immutable-storage/"
 			],
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
 			type: "ImmutableProof",
-			proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
+			proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc=",
 			proofObjectId: "123",
 			userIdentity:
 				"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
@@ -359,7 +370,7 @@ describe("ImmutableProofService", () => {
 				cryptosuite: "eddsa-jcs-2022",
 				proofPurpose: "assertionMethod",
 				proofValue:
-					"5dJah2AJtmuJ86UHHMTjxEkpm78fwmruHC3BqYocJK6CWEqDyRfZjWV4F6cSA3W2Zik5NSWUC9hyfmLfs5uRrFBb",
+					"z4usf9wC8XVqxdtuvfSnijvWGh7xFr5A9zR2SmQUY2H7s9sTJetUZcYk34HoLC7UQs7ayxDEQRUDY8w1rUhE9zqw9",
 				verificationMethod:
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363#immutable-proof-assertion"
 			},
@@ -377,7 +388,7 @@ describe("ImmutableProofService", () => {
 				userIdentity:
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 				proofObjectId: "123",
-				proofObjectHash: "iB5AWe3VyiZtugtXY5VM/sTp1oIBANwNu5SZ4ot2p6E=",
+				proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc=",
 				immutableStorageId:
 					"immutable:entity-storage:0303030303030303030303030303030303030303030303030303030303030303"
 			}

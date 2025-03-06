@@ -19,7 +19,7 @@ import {
 	ImmutableProofTypes
 } from "@twin.org/immutable-proof-models";
 import { nameof } from "@twin.org/nameof";
-import { DidContexts, DidCryptoSuites, DidTypes } from "@twin.org/standards-w3c-did";
+import { DidContexts, DidCryptoSuites, ProofTypes } from "@twin.org/standards-w3c-did";
 import { HeaderTypes, HttpStatusCode, MimeTypes } from "@twin.org/web";
 
 /**
@@ -62,7 +62,7 @@ export function generateRestRoutesImmutableProof(
 					id: "immutableProofCreateRequestExample",
 					request: {
 						body: {
-							proofObject: {
+							document: {
 								"@context": "https://schema.org",
 								type: "Person",
 								name: "John Smith"
@@ -131,12 +131,13 @@ export function generateRestRoutesImmutableProof(
 								],
 								type: ImmutableProofTypes.ImmutableProof,
 								id: "ais:1234567890",
+								nodeIdentity: "node-1",
 								userIdentity: "user-1",
 								proofObjectId: "test:1234567890",
 								proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y=",
 								proof: {
-									"@context": DidContexts.ContextVCDataIntegrity,
-									type: DidTypes.DataIntegrityProof,
+									"@context": DidContexts.ContextDataIntegrity,
+									type: ProofTypes.DataIntegrityProof,
 									cryptosuite: DidCryptoSuites.EdDSAJcs2022,
 									created: "2024-08-22T11:56:56.272Z",
 									proofPurpose: "assertionMethod",
@@ -164,12 +165,13 @@ export function generateRestRoutesImmutableProof(
 								],
 								type: ImmutableProofTypes.ImmutableProof,
 								id: "ais:1234567890",
+								nodeIdentity: "node-1",
 								userIdentity: "user-1",
 								proofObjectId: "test:1234567890",
 								proofObjectHash: "EAOKyDN0mYQbBh91eMdVeroxQx1H4GfnRbmt6n/2L/Y=",
 								proof: {
-									"@context": DidContexts.ContextVCDataIntegrity,
-									type: DidTypes.DataIntegrityProof,
+									"@context": DidContexts.ContextDataIntegrity,
+									type: ProofTypes.DataIntegrityProof,
 									cryptosuite: DidCryptoSuites.EdDSAJcs2022,
 									created: "2024-08-22T11:56:56.272Z",
 									proofPurpose: "assertionMethod",
@@ -261,11 +263,11 @@ export async function immutableProofCreate(
 	request: IImmutableProofCreateRequest
 ): Promise<ICreatedResponse> {
 	Guards.object<IImmutableProofCreateRequest>(ROUTES_SOURCE, nameof(request), request);
-	Guards.object(ROUTES_SOURCE, nameof(request.body.proofObject), request.body.proofObject);
+	Guards.object(ROUTES_SOURCE, nameof(request.body.document), request.body.document);
 
 	const component = ComponentFactory.get<IImmutableProofComponent>(componentName);
 	const result = await component.create(
-		request.body.proofObject,
+		request.body.document,
 		httpRequestContext.userIdentity,
 		httpRequestContext.nodeIdentity
 	);

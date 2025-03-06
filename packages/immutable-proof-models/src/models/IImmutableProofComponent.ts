@@ -10,20 +10,20 @@ import type { IImmutableProofVerification } from "./IImmutableProofVerification"
  */
 export interface IImmutableProofComponent extends IComponent {
 	/**
-	 * Create a new authentication proof.
-	 * @param proofObject The object for the proof as JSON-LD.
+	 * Create a new proof.
+	 * @param document The document to create the proof for.
 	 * @param userIdentity The identity to create the immutable proof operation with.
 	 * @param nodeIdentity The node identity to use for vault operations.
-	 * @returns The id of the new authentication proof.
+	 * @returns The id of the new proof.
 	 */
 	create(
-		proofObject: IJsonLdNodeObject,
+		document: IJsonLdNodeObject,
 		userIdentity?: string,
 		nodeIdentity?: string
 	): Promise<string>;
 
 	/**
-	 * Get an authentication proof.
+	 * Get a proof.
 	 * @param id The id of the proof to get.
 	 * @returns The proof.
 	 * @throws NotFoundError if the proof is not found.
@@ -31,7 +31,7 @@ export interface IImmutableProofComponent extends IComponent {
 	get(id: string): Promise<IImmutableProof>;
 
 	/**
-	 * Verify an authentication proof.
+	 * Verify a proof.
 	 * @param id The id of the proof to verify.
 	 * @returns The result of the verification and any failures.
 	 * @throws NotFoundError if the proof is not found.

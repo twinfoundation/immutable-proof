@@ -3,7 +3,7 @@
 import type { IValidationFailure } from "@twin.org/core";
 import { DataTypeHelper } from "@twin.org/data-core";
 import { JsonLdDataTypes } from "@twin.org/data-json-ld";
-import { DidContexts, DidCryptoSuites, DidTypes } from "@twin.org/standards-w3c-did";
+import { DidContexts, DidCryptoSuites, ProofTypes } from "@twin.org/standards-w3c-did";
 import { ImmutableProofDataTypes } from "../../src/dataTypes/immutableProofDataTypes";
 import { ImmutableProofTypes } from "../../src/models/immutableProofTypes";
 
@@ -37,6 +37,7 @@ describe("ImmutableDataTypes", () => {
 				"@context": [ImmutableProofTypes.ContextRoot, ImmutableProofTypes.ContextRootCommon],
 				type: ImmutableProofTypes.ImmutableProof,
 				id: "proof:123456",
+				nodeIdentity: "node-1",
 				userIdentity: "user-1",
 				proofObjectId: "test:23456",
 				proofObjectHash: "aaabbbcccddd"
@@ -56,12 +57,13 @@ describe("ImmutableDataTypes", () => {
 				"@context": [ImmutableProofTypes.ContextRoot, ImmutableProofTypes.ContextRootCommon],
 				type: ImmutableProofTypes.ImmutableProof,
 				id: "proof:123456",
+				nodeIdentity: "node-1",
 				userIdentity: "user-1",
 				proofObjectId: "test:23456",
 				proofObjectHash: "aaabbbcccddd",
 				proof: {
-					"@context": [DidContexts.ContextVCDataIntegrity],
-					type: DidTypes.DataIntegrityProof,
+					"@context": [DidContexts.ContextDataIntegrity],
+					type: ProofTypes.DataIntegrityProof,
 					cryptosuite: DidCryptoSuites.EdDSAJcs2022,
 					proofPurpose: "assertionMethod",
 					proofValue: "7DdiPPYtxLjCD3wA1po2rvZHTDYjkZYiEtazrfiwJcwnKCizhGFhBGHeRdx"

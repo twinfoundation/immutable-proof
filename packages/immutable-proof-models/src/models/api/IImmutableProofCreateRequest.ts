@@ -11,8 +11,8 @@ export interface IImmutableProofCreateRequest {
 	 */
 	body: {
 		/**
-		 * The proof object to create the proof for.
+		 * The document to create the proof for.
 		 */
-		proofObject: IJsonLdNodeObject;
+		document: IJsonLdNodeObject;
 	};
 }

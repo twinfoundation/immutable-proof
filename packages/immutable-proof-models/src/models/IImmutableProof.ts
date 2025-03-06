@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IJsonLdContextDefinitionElement, IJsonLdNodeObject } from "@twin.org/data-json-ld";
-import type { IDidProof } from "@twin.org/standards-w3c-did";
+import type { IDataIntegrityProof } from "@twin.org/standards-w3c-did";
 import type { ImmutableProofTypes } from "./immutableProofTypes";
 
 /**
@@ -28,6 +28,11 @@ export interface IImmutableProof {
 	id: string;
 
 	/**
+	 * The id of the node who created the proof.
+	 */
+	nodeIdentity: string;
+
+	/**
 	 * The id of the user who created the proof.
 	 */
 	userIdentity: string;
@@ -45,7 +50,7 @@ export interface IImmutableProof {
 	/**
 	 * The proof which can be undefined if it has not yet been issued.
 	 */
-	proof?: IDidProof;
+	proof?: IDataIntegrityProof;
 
 	/**
 	 * The immutable receipt detail for where the proof is stored.

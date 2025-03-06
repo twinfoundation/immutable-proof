@@ -1,6 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { IDidProof } from "@twin.org/standards-w3c-did";
+import type { IDataIntegrityProof } from "@twin.org/standards-w3c-did";
 
 /**
  * The result for the immutable proof task.
@@ -14,5 +14,5 @@ export interface IImmutableProofTaskResult {
 	/**
 	 * The proof.
 	 */
-	proof: IDidProof;
+	proof: IDataIntegrityProof;
 }

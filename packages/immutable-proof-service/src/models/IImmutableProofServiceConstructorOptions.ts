@@ -7,12 +7,6 @@ import type { IImmutableProofServiceConfig } from "./IImmutableProofServiceConfi
  */
 export interface IImmutableProofServiceConstructorOptions {
 	/**
-	 * The vault connector type.
-	 * @default vault
-	 */
-	vaultConnectorType?: string;
-
-	/**
 	 * The entity storage for proofs.
 	 * @default immutable-proof
 	 */

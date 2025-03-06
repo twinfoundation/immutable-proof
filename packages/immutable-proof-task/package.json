@@ -1,6 +1,6 @@
 {
 	"name": "@twin.org/immutable-proof-task",
-	"version": "0.0.1-next.25",
+	"version": "0.0.1-next.26",
 	"description": "Background task for generating the proof",
 	"repository": {
 		"type": "git",
@@ -31,6 +31,7 @@
 	},
 	"dependencies": {
 		"@twin.org/core": "next",
+		"@twin.org/data-json-ld": "next",
 		"@twin.org/engine-core": "next",
 		"@twin.org/engine-models": "next",
 		"@twin.org/identity-models": "next",

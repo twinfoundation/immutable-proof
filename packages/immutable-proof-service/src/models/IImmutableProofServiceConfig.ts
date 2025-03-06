@@ -10,10 +10,4 @@ export interface IImmutableProofServiceConfig {
 	 * @default immutable-proof-assertion
 	 */
 	verificationMethodId?: string;
-
-	/**
-	 * The key to use in the proof hash.
-	 * @default immutable-proof-hash
-	 */
-	proofHashKeyId?: string;
 }

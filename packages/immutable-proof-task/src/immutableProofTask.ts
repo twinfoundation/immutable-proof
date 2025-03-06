@@ -1,10 +1,12 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { Converter, Guards, Is } from "@twin.org/core";
+import { Guards, Is } from "@twin.org/core";
+import type { IJsonLdNodeObject } from "@twin.org/data-json-ld";
 import { EngineCore } from "@twin.org/engine-core";
 import type { IEngineCore, IEngineCoreClone } from "@twin.org/engine-models";
 import { IdentityConnectorFactory } from "@twin.org/identity-models";
 import { nameof } from "@twin.org/nameof";
+import { type IDataIntegrityProof, ProofTypes } from "@twin.org/standards-w3c-did";
 import type { IImmutableProofTaskPayload } from "./models/IImmutableProofTaskPayload";
 import type { IImmutableProofTaskResult } from "./models/IImmutableProofTaskResult";
 
@@ -20,15 +22,19 @@ export async function processProofTask(
 	engineCloneData: IEngineCoreClone,
 	payload: IImmutableProofTaskPayload
 ): Promise<IImmutableProofTaskResult> {
-	Guards.objectValue(CLASS_NAME, nameof(payload), payload);
+	Guards.objectValue<IImmutableProofTaskPayload>(CLASS_NAME, nameof(payload), payload);
 	Guards.stringValue(CLASS_NAME, nameof(payload.nodeIdentity), payload.nodeIdentity);
 	Guards.stringValue(
 		CLASS_NAME,
 		nameof(payload.identityConnectorType),
 		payload.identityConnectorType
 	);
-	Guards.stringHex(CLASS_NAME, nameof(payload.hashData), payload.hashData);
-	Guards.stringValue(CLASS_NAME, nameof(payload.assertionMethodId), payload.assertionMethodId);
+	Guards.stringValue(
+		CLASS_NAME,
+		nameof(payload.verificationMethodId),
+		payload.verificationMethodId
+	);
+	Guards.object<IJsonLdNodeObject>(CLASS_NAME, nameof(payload.document), payload.document);
 
 	let engine: IEngineCore | undefined;
 	try {
@@ -44,13 +50,14 @@ export async function processProofTask(
 
 		const proof = await identityConnector.createProof(
 			payload.nodeIdentity,
-			`${payload.nodeIdentity}#${payload.assertionMethodId}`,
-			Converter.hexToBytes(payload.hashData)
+			`${payload.nodeIdentity}#${payload.verificationMethodId}`,
+			ProofTypes.DataIntegrityProof,
+			payload.document
 		);
 
 		return {
 			proofId: payload.proofId,
-			proof
+			proof: proof as IDataIntegrityProof
 		};
 	} finally {
 		if (!Is.empty(engine)) {
