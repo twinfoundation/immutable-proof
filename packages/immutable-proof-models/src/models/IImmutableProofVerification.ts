@@ -1,5 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import type { ImmutableProofContexts } from "./immutableProofContexts";
 import type { ImmutableProofFailure } from "./immutableProofFailure";
 import type { ImmutableProofTypes } from "./immutableProofTypes";
 
@@ -10,7 +11,7 @@ export interface IImmutableProofVerification {
 	/**
 	 * JSON-LD Context.
 	 */
-	"@context": typeof ImmutableProofTypes.ContextRoot;
+	"@context": typeof ImmutableProofContexts.ContextRoot;
 
 	/**
 	 * JSON-LD Type.

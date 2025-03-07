@@ -15,6 +15,7 @@ import {
 	type IImmutableProofGetResponse,
 	type IImmutableProofVerifyRequest,
 	type IImmutableProofVerifyResponse,
+	ImmutableProofContexts,
 	ImmutableProofFailure,
 	ImmutableProofTypes
 } from "@twin.org/immutable-proof-models";
@@ -126,8 +127,8 @@ export function generateRestRoutesImmutableProof(
 						response: {
 							body: {
 								"@context": [
-									ImmutableProofTypes.ContextRoot,
-									ImmutableProofTypes.ContextRootCommon
+									ImmutableProofContexts.ContextRoot,
+									ImmutableProofContexts.ContextRootCommon
 								],
 								type: ImmutableProofTypes.ImmutableProof,
 								id: "ais:1234567890",
@@ -160,8 +161,8 @@ export function generateRestRoutesImmutableProof(
 							},
 							body: {
 								"@context": [
-									ImmutableProofTypes.ContextRoot,
-									ImmutableProofTypes.ContextRootCommon
+									ImmutableProofContexts.ContextRoot,
+									ImmutableProofContexts.ContextRootCommon
 								],
 								type: ImmutableProofTypes.ImmutableProof,
 								id: "ais:1234567890",
@@ -217,7 +218,7 @@ export function generateRestRoutesImmutableProof(
 						id: "immutableProofVerifyResponseExample",
 						response: {
 							body: {
-								"@context": ImmutableProofTypes.ContextRoot,
+								"@context": ImmutableProofContexts.ContextRoot,
 								type: ImmutableProofTypes.ImmutableProofVerification,
 								verified: true
 							}
@@ -232,7 +233,7 @@ export function generateRestRoutesImmutableProof(
 						id: "immutableProofVerifyResponseFailExample",
 						response: {
 							body: {
-								"@context": ImmutableProofTypes.ContextRoot,
+								"@context": ImmutableProofContexts.ContextRoot,
 								type: ImmutableProofTypes.ImmutableProofVerification,
 								verified: false,
 								failure: ImmutableProofFailure.ProofTypeMismatch

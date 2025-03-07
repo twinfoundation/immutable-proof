@@ -30,6 +30,7 @@ import {
 import type { IEventBusComponent } from "@twin.org/event-bus-models";
 import { IdentityConnectorFactory, type IIdentityConnector } from "@twin.org/identity-models";
 import {
+	ImmutableProofContexts,
 	ImmutableProofFailure,
 	ImmutableProofTopics,
 	ImmutableProofTypes,
@@ -259,7 +260,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			const { verified, failure } = await this.internalGet(id, true);
 
 			return {
-				"@context": ImmutableProofTypes.ContextRoot,
+				"@context": ImmutableProofContexts.ContextRoot,
 				type: ImmutableProofTypes.ImmutableProofVerification,
 				verified,
 				failure
@@ -325,7 +326,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	 */
 	private proofEntityToJsonLd(proofEntity: ImmutableProof): IImmutableProof {
 		const jsonLd: IImmutableProof = {
-			"@context": [ImmutableProofTypes.ContextRoot, ImmutableProofTypes.ContextRootCommon],
+			"@context": [ImmutableProofContexts.ContextRoot, ImmutableProofContexts.ContextRootCommon],
 			type: ImmutableProofTypes.ImmutableProof,
 			id: proofEntity.id,
 			nodeIdentity: proofEntity.nodeIdentity,
@@ -353,7 +354,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 
 				// As we are adding the proof to the data we update its context
 				immutableProof["@context"] = JsonLdProcessor.combineContexts(
-					[ImmutableProofTypes.ContextRoot, ImmutableProofTypes.ContextRootCommon],
+					[ImmutableProofContexts.ContextRoot, ImmutableProofContexts.ContextRootCommon],
 					task.result.proof["@context"]
 				) as IImmutableProof["@context"];
 				immutableProof.proof = task.result.proof;

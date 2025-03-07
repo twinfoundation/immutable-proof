@@ -5,6 +5,7 @@ import { DataTypeHelper } from "@twin.org/data-core";
 import { JsonLdDataTypes } from "@twin.org/data-json-ld";
 import { DidContexts, DidCryptoSuites, ProofTypes } from "@twin.org/standards-w3c-did";
 import { ImmutableProofDataTypes } from "../../src/dataTypes/immutableProofDataTypes";
+import { ImmutableProofContexts } from "../../src/models/immutableProofContexts";
 import { ImmutableProofTypes } from "../../src/models/immutableProofTypes";
 
 describe("ImmutableDataTypes", () => {
@@ -34,7 +35,7 @@ describe("ImmutableDataTypes", () => {
 			"",
 			ImmutableProofTypes.ImmutableProof,
 			{
-				"@context": [ImmutableProofTypes.ContextRoot, ImmutableProofTypes.ContextRootCommon],
+				"@context": [ImmutableProofContexts.ContextRoot, ImmutableProofContexts.ContextRootCommon],
 				type: ImmutableProofTypes.ImmutableProof,
 				id: "proof:123456",
 				nodeIdentity: "node-1",
@@ -54,7 +55,7 @@ describe("ImmutableDataTypes", () => {
 			"",
 			ImmutableProofTypes.ImmutableProof,
 			{
-				"@context": [ImmutableProofTypes.ContextRoot, ImmutableProofTypes.ContextRootCommon],
+				"@context": [ImmutableProofContexts.ContextRoot, ImmutableProofContexts.ContextRootCommon],
 				type: ImmutableProofTypes.ImmutableProof,
 				id: "proof:123456",
 				nodeIdentity: "node-1",

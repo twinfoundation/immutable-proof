@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0.
 import type { IJsonLdContextDefinitionElement, IJsonLdNodeObject } from "@twin.org/data-json-ld";
 import type { IDataIntegrityProof } from "@twin.org/standards-w3c-did";
+import type { ImmutableProofContexts } from "./immutableProofContexts";
 import type { ImmutableProofTypes } from "./immutableProofTypes";
 
 /**
@@ -12,8 +13,8 @@ export interface IImmutableProof {
 	 * JSON-LD Context.
 	 */
 	"@context": [
-		typeof ImmutableProofTypes.ContextRoot,
-		typeof ImmutableProofTypes.ContextRootCommon,
+		typeof ImmutableProofContexts.ContextRoot,
+		typeof ImmutableProofContexts.ContextRootCommon,
 		...IJsonLdContextDefinitionElement[]
 	];
 
