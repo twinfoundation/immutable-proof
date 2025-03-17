@@ -5,7 +5,7 @@
 			"createFailed": "Creating the proof failed",
 			"getFailed": "Getting the proof failed",
 			"verifyFailed": "Verifying the proof failed",
-			"removeImmutableFailed": "Removing immutable entry from the Immutable Proof failed",
+			"removeVerifiableFailed": "Removing verifiable entry from the Immutable Proof failed",
 			"proofNotFound": "The proof with the Id \"{notFoundId}\" was not found"
 		}
 	}

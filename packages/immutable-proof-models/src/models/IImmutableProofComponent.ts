@@ -39,11 +39,11 @@ export interface IImmutableProofComponent extends IComponent {
 	verify(id: string): Promise<IImmutableProofVerification>;
 
 	/**
-	 * Remove the immutable storage for the proof.
+	 * Remove the verifiable storage for the proof.
 	 * @param id The id of the proof to remove the storage from.
 	 * @param nodeIdentity The node identity to use for vault operations.
 	 * @returns Nothing.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	removeImmutable(id: string, nodeIdentity?: string): Promise<void>;
+	removeVerifiable(id: string, nodeIdentity?: string): Promise<void>;
 }

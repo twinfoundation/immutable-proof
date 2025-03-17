@@ -13,10 +13,10 @@ export interface IImmutableProofServiceConstructorOptions {
 	immutableProofEntityStorageType?: string;
 
 	/**
-	 * The immutable storage.
-	 * @default immutable-storage
+	 * The verifiable storage.
+	 * @default verifiable-storage
 	 */
-	immutableStorageType?: string;
+	verifiableStorageType?: string;
 
 	/**
 	 * The identity connector type.

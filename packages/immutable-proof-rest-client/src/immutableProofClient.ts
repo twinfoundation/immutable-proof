@@ -102,12 +102,12 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 	}
 
 	/**
-	 * Remove the immutable storage for the proof.
+	 * Remove the verifiable storage for the proof.
 	 * @param id The id of the proof to remove the storage from.
 	 * @returns Nothing.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	public async removeImmutable(id: string): Promise<void> {
-		throw new NotSupportedError(this.CLASS_NAME, "removeImmutable");
+	public async removeVerifiable(id: string): Promise<void> {
+		throw new NotSupportedError(this.CLASS_NAME, "removeVerifiable");
 	}
 }

@@ -43,12 +43,12 @@ import type {
 	IImmutableProofTaskPayload,
 	IImmutableProofTaskResult
 } from "@twin.org/immutable-proof-task";
-import {
-	ImmutableStorageConnectorFactory,
-	type IImmutableStorageConnector
-} from "@twin.org/immutable-storage-models";
 import { nameof } from "@twin.org/nameof";
 import { DidCryptoSuites, ProofTypes } from "@twin.org/standards-w3c-did";
+import {
+	VerifiableStorageConnectorFactory,
+	type IVerifiableStorageConnector
+} from "@twin.org/verifiable-storage-models";
 import type { ImmutableProof } from "./entities/immutableProof";
 import type { IImmutableProofServiceConfig } from "./models/IImmutableProofServiceConfig";
 import type { IImmutableProofServiceConstructorOptions } from "./models/IImmutableProofServiceConstructorOptions";
@@ -86,10 +86,10 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	private readonly _proofStorage: IEntityStorageConnector<ImmutableProof>;
 
 	/**
-	 * The immutable storage for the credentials.
+	 * The verifiable storage for the credentials.
 	 * @internal
 	 */
-	private readonly _immutableStorage: IImmutableStorageConnector;
+	private readonly _verifiableStorage: IVerifiableStorageConnector;
 
 	/**
 	 * The background task connector.
@@ -124,8 +124,8 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			options?.immutableProofEntityStorageType ?? StringHelper.kebabCase(nameof<ImmutableProof>())
 		);
 
-		this._immutableStorage = ImmutableStorageConnectorFactory.get(
-			options?.immutableStorageType ?? "immutable-storage"
+		this._verifiableStorage = VerifiableStorageConnectorFactory.get(
+			options?.verifiableStorageType ?? "verifiable-storage"
 		);
 
 		this._identityConnectorType = options?.identityConnectorType ?? "identity";
@@ -271,13 +271,13 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	}
 
 	/**
-	 * Remove the immutable storage for the proof.
+	 * Remove the verifiable storage for the proof.
 	 * @param id The id of the proof to remove the storage from.
 	 * @param nodeIdentity The node identity to use for vault operations.
 	 * @returns Nothing.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	public async removeImmutable(id: string, nodeIdentity?: string): Promise<void> {
+	public async removeVerifiable(id: string, nodeIdentity?: string): Promise<void> {
 		Guards.stringValue(this.CLASS_NAME, nameof(id), id);
 		Guards.stringValue(this.CLASS_NAME, nameof(nodeIdentity), nodeIdentity);
 
@@ -298,13 +298,13 @@ export class ImmutableProofService implements IImmutableProofComponent {
 				throw new NotFoundError(this.CLASS_NAME, "proofNotFound", id);
 			}
 
-			if (Is.stringValue(streamEntity.immutableStorageId)) {
-				await this._immutableStorage.remove(nodeIdentity, streamEntity.immutableStorageId);
-				delete streamEntity.immutableStorageId;
+			if (Is.stringValue(streamEntity.verifiableStorageId)) {
+				await this._verifiableStorage.remove(nodeIdentity, streamEntity.verifiableStorageId);
+				delete streamEntity.verifiableStorageId;
 				await this._proofStorage.set(streamEntity);
 			}
 		} catch (error) {
-			throw new GeneralError(this.CLASS_NAME, "removeImmutableFailed", undefined, error);
+			throw new GeneralError(this.CLASS_NAME, "removeVerifiableFailed", undefined, error);
 		}
 	}
 
@@ -366,12 +366,12 @@ export class ImmutableProofService implements IImmutableProofComponent {
 
 				const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
 
-				const immutableStoreResult = await this._immutableStorage.store(
+				const verifiableCreateResult = await this._verifiableStorage.create(
 					proofEntity.nodeIdentity,
 					ObjectHelper.toBytes(compacted)
 				);
 
-				proofEntity.immutableStorageId = immutableStoreResult.id;
+				proofEntity.verifiableStorageId = verifiableCreateResult.id;
 
 				await this._proofStorage.set(proofEntity);
 
@@ -411,9 +411,9 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		let verified = false;
 		let failure: ImmutableProofFailure | undefined = ImmutableProofFailure.NotIssued;
 
-		if (Is.stringValue(proofEntity.immutableStorageId)) {
+		if (Is.stringValue(proofEntity.verifiableStorageId)) {
 			failure = ImmutableProofFailure.ProofMissing;
-			const immutableResult = await this._immutableStorage.get(proofEntity.immutableStorageId);
+			const immutableResult = await this._verifiableStorage.get(proofEntity.verifiableStorageId);
 
 			if (Is.uint8Array(immutableResult.data)) {
 				proofJsonLd = ObjectHelper.fromBytes<IImmutableProof>(immutableResult.data);

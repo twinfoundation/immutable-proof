@@ -9,14 +9,14 @@ import { BackgroundTaskConnectorFactory } from "@twin.org/background-task-models
 import { RandomHelper } from "@twin.org/core";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import {
-	EntityStorageImmutableStorageConnector,
-	type ImmutableItem,
-	initSchema as initSchemaImmutableStorage
-} from "@twin.org/immutable-storage-connector-entity-storage";
-import { ImmutableStorageConnectorFactory } from "@twin.org/immutable-storage-models";
 import { ModuleHelper } from "@twin.org/modules";
 import { nameof } from "@twin.org/nameof";
+import {
+	EntityStorageVerifiableStorageConnector,
+	type VerifiableItem,
+	initSchema as initSchemaVerifiableStorage
+} from "@twin.org/verifiable-storage-connector-entity-storage";
+import { VerifiableStorageConnectorFactory } from "@twin.org/verifiable-storage-models";
 import {
 	cleanupTestEnv,
 	setupTestEnv,
@@ -28,7 +28,7 @@ import { ImmutableProofService } from "../src/immutableProofService";
 import { initSchema } from "../src/schema";
 
 let proofStorage: MemoryEntityStorageConnector<ImmutableProof>;
-let immutableStorage: MemoryEntityStorageConnector<ImmutableItem>;
+let verifiableStorage: MemoryEntityStorageConnector<VerifiableItem>;
 let backgroundTaskStorage: MemoryEntityStorageConnector<BackgroundTask>;
 let backgroundTaskConnectorEntityStorage: EntityStorageBackgroundTaskConnector;
 
@@ -42,7 +42,7 @@ async function waitForProofGeneration(proofCount: number = 1): Promise<void> {
 	let count = 0;
 	let generated;
 	do {
-		generated = immutableStorage.getStore().length === proofCount || count++ === proofCount * 40;
+		generated = verifiableStorage.getStore().length === proofCount || count++ === proofCount * 40;
 		if (generated) {
 			return;
 		}
@@ -59,7 +59,7 @@ describe("ImmutableProofService", () => {
 
 	beforeEach(async () => {
 		initSchema();
-		initSchemaImmutableStorage();
+		initSchemaVerifiableStorage();
 		initSchemaBackgroundTask();
 
 		proofStorage = new MemoryEntityStorageConnector<ImmutableProof>({
@@ -78,14 +78,14 @@ describe("ImmutableProofService", () => {
 			() => backgroundTaskConnectorEntityStorage
 		);
 
-		immutableStorage = new MemoryEntityStorageConnector<ImmutableItem>({
-			entitySchema: nameof<ImmutableItem>()
+		verifiableStorage = new MemoryEntityStorageConnector<VerifiableItem>({
+			entitySchema: nameof<VerifiableItem>()
 		});
-		EntityStorageConnectorFactory.register("immutable-item", () => immutableStorage);
+		EntityStorageConnectorFactory.register("verifiable-item", () => verifiableStorage);
 
-		ImmutableStorageConnectorFactory.register(
-			"immutable-storage",
-			() => new EntityStorageImmutableStorageConnector()
+		VerifiableStorageConnectorFactory.register(
+			"verifiable-storage",
+			() => new EntityStorageVerifiableStorageConnector()
 		);
 
 		Date.now = vi.fn().mockImplementation(() => FIRST_TICK);
@@ -235,8 +235,8 @@ describe("ImmutableProofService", () => {
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 				proofObjectId: "123",
 				proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc=",
-				immutableStorageId:
-					"immutable:entity-storage:0303030303030303030303030303030303030303030303030303030303030303"
+				verifiableStorageId:
+					"verifiable:entity-storage:0303030303030303030303030303030303030303030303030303030303030303"
 			}
 		]);
 
@@ -246,7 +246,7 @@ describe("ImmutableProofService", () => {
 				"https://schema.twindev.org/immutable-proof/",
 				"https://schema.twindev.org/common/",
 				"https://www.w3.org/ns/credentials/v2",
-				"https://schema.twindev.org/immutable-storage/"
+				"https://schema.twindev.org/verifiable-storage/"
 			],
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
 			type: "ImmutableProof",
@@ -264,12 +264,12 @@ describe("ImmutableProofService", () => {
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363#immutable-proof-assertion"
 			},
 			immutableReceipt: {
-				type: "ImmutableStorageEntityStorageReceipt"
+				type: "VerifiableStorageEntityStorageReceipt"
 			}
 		});
 
-		const immutableStore = immutableStorage.getStore();
-		expect(immutableStore).toMatchObject([
+		const verifiableStore = verifiableStorage.getStore();
+		expect(verifiableStore).toMatchObject([
 			{
 				id: "0303030303030303030303030303030303030303030303030303030303030303",
 				controller:
@@ -357,7 +357,7 @@ describe("ImmutableProofService", () => {
 				"https://schema.twindev.org/immutable-proof/",
 				"https://schema.twindev.org/common/",
 				"https://www.w3.org/ns/credentials/v2",
-				"https://schema.twindev.org/immutable-storage/"
+				"https://schema.twindev.org/verifiable-storage/"
 			],
 			id: "0101010101010101010101010101010101010101010101010101010101010101",
 			type: "ImmutableProof",
@@ -375,7 +375,7 @@ describe("ImmutableProofService", () => {
 					"did:entity-storage:0x6363636363636363636363636363636363636363636363636363636363636363#immutable-proof-assertion"
 			},
 			immutableReceipt: {
-				type: "ImmutableStorageEntityStorageReceipt"
+				type: "VerifiableStorageEntityStorageReceipt"
 			}
 		});
 
@@ -389,13 +389,13 @@ describe("ImmutableProofService", () => {
 					"did:entity-storage:0x5858585858585858585858585858585858585858585858585858585858585858",
 				proofObjectId: "123",
 				proofObjectHash: "sha256:Z5k43EVM3eOBqcK6vt2ohwtJDUsjZXzZuWZFh2K3zvc=",
-				immutableStorageId:
-					"immutable:entity-storage:0303030303030303030303030303030303030303030303030303030303030303"
+				verifiableStorageId:
+					"verifiable:entity-storage:0303030303030303030303030303030303030303030303030303030303030303"
 			}
 		]);
 
-		const immutableStore = immutableStorage.getStore();
-		expect(immutableStore).toMatchObject([
+		const verifiableStore = verifiableStorage.getStore();
+		expect(verifiableStore).toMatchObject([
 			{
 				id: "0303030303030303030303030303030303030303030303030303030303030303",
 				controller:
