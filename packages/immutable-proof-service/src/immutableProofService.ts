@@ -332,7 +332,8 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			nodeIdentity: proofEntity.nodeIdentity,
 			userIdentity: proofEntity.userIdentity,
 			proofObjectId: proofEntity.proofObjectId,
-			proofObjectHash: proofEntity.proofObjectHash
+			proofObjectHash: proofEntity.proofObjectHash,
+			verifiableStorageId: proofEntity.verifiableStorageId
 		};
 
 		return jsonLd;

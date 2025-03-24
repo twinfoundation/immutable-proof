@@ -44,6 +44,10 @@
 			"type": "string",
 			"description": "The hash of the object associated with the proof."
 		},
+		"verifiableStorageId": {
+			"type": "string",
+			"description": "The verifiable storage id for where the proof is stored."
+		},
 		"proof": {
 			"$ref": "https://schema.twindev.org/did/DataIntegrityProof",
 			"description": "The proof which can be undefined if it has not yet been issued."

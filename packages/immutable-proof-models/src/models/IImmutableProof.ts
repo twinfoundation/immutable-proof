@@ -49,6 +49,11 @@ export interface IImmutableProof {
 	proofObjectHash: string;
 
 	/**
+	 * The verifiable storage id for where the proof is stored.
+	 */
+	verifiableStorageId?: string;
+
+	/**
 	 * The proof which can be undefined if it has not yet been issued.
 	 */
 	proof?: IDataIntegrityProof;
