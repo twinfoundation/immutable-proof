@@ -421,6 +421,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 
 				const unsecureDocument = ObjectHelper.clone(proofJsonLd) as unknown as IJsonLdNodeObject;
 				proofJsonLd.immutableReceipt = immutableResult.receipt;
+				proofJsonLd.verifiableStorageId = proofEntity.verifiableStorageId;
 
 				// As we are adding the receipt to the data we update the JSON-LD context
 				const receiptContext = immutableResult.receipt["@context"];
