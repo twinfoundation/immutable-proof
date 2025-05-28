@@ -18,7 +18,7 @@ describe("ImmutableDataTypes", () => {
 		const validationFailures: IValidationFailure[] = [];
 		const isValid = await DataTypeHelper.validate(
 			"",
-			ImmutableProofTypes.ImmutableProof,
+			`${ImmutableProofContexts.ContextRoot}${ImmutableProofTypes.ImmutableProof}`,
 			{
 				id: "foo",
 				dateCreated: new Date().toISOString()
@@ -33,7 +33,7 @@ describe("ImmutableDataTypes", () => {
 		const validationFailures: IValidationFailure[] = [];
 		const isValid = await DataTypeHelper.validate(
 			"",
-			ImmutableProofTypes.ImmutableProof,
+			`${ImmutableProofContexts.ContextRoot}${ImmutableProofTypes.ImmutableProof}`,
 			{
 				"@context": [ImmutableProofContexts.ContextRoot, ImmutableProofContexts.ContextRootCommon],
 				type: ImmutableProofTypes.ImmutableProof,
