@@ -1,5 +1,12 @@
 # @twin.org/immutable-proof-models - Changelog
 
+## [0.0.1-next.34](https://github.com/twinfoundation/immutable-proof/compare/immutable-proof-models-v0.0.1-next.33...immutable-proof-models-v0.0.1-next.34) (2025-06-03)
+
+
+### Features
+
+* update ts-to-schema generation ([c4fc864](https://github.com/twinfoundation/immutable-proof/commit/c4fc8646e7b8ee040d356f7f0f3b2d6f4ac63e40))
+
 ## [0.0.1-next.33](https://github.com/twinfoundation/immutable-proof/compare/immutable-proof-models-v0.0.1-next.32...immutable-proof-models-v0.0.1-next.33) (2025-05-28)
 
 
