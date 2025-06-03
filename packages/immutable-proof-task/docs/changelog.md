@@ -1,5 +1,12 @@
 # @twin.org/immutable-proof-task - Changelog
 
+## [0.0.1-next.34](https://github.com/twinfoundation/immutable-proof/compare/immutable-proof-task-v0.0.1-next.33...immutable-proof-task-v0.0.1-next.34) (2025-06-03)
+
+
+### Miscellaneous Chores
+
+* **immutable-proof-task:** Synchronize repo versions
+
 ## [0.0.1-next.33](https://github.com/twinfoundation/immutable-proof/compare/immutable-proof-task-v0.0.1-next.32...immutable-proof-task-v0.0.1-next.33) (2025-05-28)
 
 
