@@ -1,6 +1,8 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { IDidProof } from "@twin.org/standards-w3c-did";
+import type { IJsonLdContextDefinitionElement, IJsonLdNodeObject } from "@twin.org/data-json-ld";
+import type { IDataIntegrityProof } from "@twin.org/standards-w3c-did";
+import type { ImmutableProofContexts } from "./immutableProofContexts";
 import type { ImmutableProofTypes } from "./immutableProofTypes";
 
 /**
@@ -10,9 +12,11 @@ export interface IImmutableProof {
 	/**
 	 * JSON-LD Context.
 	 */
-	"@context":
-		| typeof ImmutableProofTypes.ContextRoot
-		| [typeof ImmutableProofTypes.ContextRoot, ...string[]];
+	"@context": [
+		typeof ImmutableProofContexts.ContextRoot,
+		typeof ImmutableProofContexts.ContextRootCommon,
+		...IJsonLdContextDefinitionElement[]
+	];
 
 	/**
 	 * JSON-LD Type.
@@ -23,6 +27,11 @@ export interface IImmutableProof {
 	 * The id of the proof.
 	 */
 	id: string;
+
+	/**
+	 * The id of the node who created the proof.
+	 */
+	nodeIdentity: string;
 
 	/**
 	 * The id of the user who created the proof.
@@ -40,7 +49,17 @@ export interface IImmutableProof {
 	proofObjectHash: string;
 
 	/**
+	 * The verifiable storage id for where the proof is stored.
+	 */
+	verifiableStorageId?: string;
+
+	/**
 	 * The proof which can be undefined if it has not yet been issued.
 	 */
-	proof?: IDidProof;
+	proof?: IDataIntegrityProof;
+
+	/**
+	 * The immutable receipt detail for where the proof is stored.
+	 */
+	immutableReceipt?: IJsonLdNodeObject;
 }

@@ -7,7 +7,7 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const ImmutableProofFailure = {
 	/**
-	 * Proof not yes issued.
+	 * Proof not yet issued.
 	 */
 	NotIssued: "notIssued",
 

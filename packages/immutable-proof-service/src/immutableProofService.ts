@@ -1,6 +1,13 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import {
+	BackgroundTaskConnectorFactory,
+	TaskStatus,
+	type IBackgroundTask,
+	type IBackgroundTaskConnector
+} from "@twin.org/background-task-models";
+import {
+	ComponentFactory,
 	Converter,
 	GeneralError,
 	Guards,
@@ -14,30 +21,37 @@ import {
 	Validation,
 	type IValidationFailure
 } from "@twin.org/core";
-import { Blake2b, Sha256 } from "@twin.org/crypto";
+import { Sha256 } from "@twin.org/crypto";
 import { JsonLdHelper, JsonLdProcessor, type IJsonLdNodeObject } from "@twin.org/data-json-ld";
-import { SchemaOrgDataTypes, SchemaOrgTypes } from "@twin.org/data-schema-org";
-import { ComparisonOperator, SortDirection } from "@twin.org/entity";
 import {
 	EntityStorageConnectorFactory,
 	type IEntityStorageConnector
 } from "@twin.org/entity-storage-models";
+import type { IEventBusComponent } from "@twin.org/event-bus-models";
 import { IdentityConnectorFactory, type IIdentityConnector } from "@twin.org/identity-models";
 import {
+	ImmutableProofContexts,
 	ImmutableProofFailure,
+	ImmutableProofTopics,
 	ImmutableProofTypes,
 	type IImmutableProof,
-	type IImmutableProofComponent
+	type IImmutableProofComponent,
+	type IImmutableProofEventBusProofCreated,
+	type IImmutableProofVerification
 } from "@twin.org/immutable-proof-models";
-import {
-	ImmutableStorageConnectorFactory,
-	type IImmutableStorageConnector
-} from "@twin.org/immutable-storage-models";
+import type {
+	IImmutableProofTaskPayload,
+	IImmutableProofTaskResult
+} from "@twin.org/immutable-proof-task";
 import { nameof } from "@twin.org/nameof";
-import { DidContexts, DidCryptoSuites, DidTypes } from "@twin.org/standards-w3c-did";
-import { VaultConnectorFactory, type IVaultConnector } from "@twin.org/vault-models";
+import { DidCryptoSuites, ProofTypes } from "@twin.org/standards-w3c-did";
+import {
+	VerifiableStorageConnectorFactory,
+	type IVerifiableStorageConnector
+} from "@twin.org/verifiable-storage-models";
 import type { ImmutableProof } from "./entities/immutableProof";
 import type { IImmutableProofServiceConfig } from "./models/IImmutableProofServiceConfig";
+import type { IImmutableProofServiceConstructorOptions } from "./models/IImmutableProofServiceConstructorOptions";
 
 /**
  * Class for performing immutable proof operations.
@@ -60,12 +74,6 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	private readonly _config: IImmutableProofServiceConfig;
 
 	/**
-	 * The vault connector.
-	 * @internal
-	 */
-	private readonly _vaultConnector: IVaultConnector;
-
-	/**
 	 * The identity connector.
 	 * @internal
 	 */
@@ -78,95 +86,102 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	private readonly _proofStorage: IEntityStorageConnector<ImmutableProof>;
 
 	/**
-	 * The immutable storage for the credentials.
+	 * The verifiable storage for the credentials.
 	 * @internal
 	 */
-	private readonly _immutableStorage: IImmutableStorageConnector;
+	private readonly _verifiableStorage: IVerifiableStorageConnector;
 
 	/**
-	 * The assertion method id to use for the proofs.
+	 * The background task connector.
 	 * @internal
 	 */
-	private readonly _assertionMethodId: string;
+	private readonly _backgroundTaskConnector: IBackgroundTaskConnector;
 
 	/**
-	 * The proof config key id to use for the proofs.
+	 * The event bus component.
 	 * @internal
 	 */
-	private readonly _proofConfigKeyId: string;
+	private readonly _eventBusComponent?: IEventBusComponent;
 
 	/**
-	 * Are we currently processing proofs.
+	 * The verification method id to use for the proofs.
 	 * @internal
 	 */
-	private _processing: boolean;
+	private readonly _verificationMethodId: string;
+
+	/**
+	 * The identity connector type.
+	 * @internal
+	 */
+	private readonly _identityConnectorType: string;
 
 	/**
 	 * Create a new instance of ImmutableProofService.
 	 * @param options The dependencies for the immutable proof connector.
-	 * @param options.config The configuration for the connector.
-	 * @param options.vaultConnectorType The vault connector type, defaults to "vault".
-	 * @param options.immutableProofEntityStorageType The entity storage for proofs, defaults to "immutable-proof".
-	 * @param options.immutableStorageType The immutable storage, defaults to "immutable-proof".
-	 * @param options.identityConnectorType The identity connector type, defaults to "identity".
 	 */
-	constructor(options?: {
-		vaultConnectorType?: string;
-		immutableProofEntityStorageType?: string;
-		immutableStorageType?: string;
-		config?: IImmutableProofServiceConfig;
-		identityConnectorType?: string;
-	}) {
-		this._vaultConnector = VaultConnectorFactory.get(options?.vaultConnectorType ?? "vault");
-
+	constructor(options?: IImmutableProofServiceConstructorOptions) {
 		this._proofStorage = EntityStorageConnectorFactory.get(
 			options?.immutableProofEntityStorageType ?? StringHelper.kebabCase(nameof<ImmutableProof>())
 		);
 
-		this._immutableStorage = ImmutableStorageConnectorFactory.get(
-			options?.immutableStorageType ?? "immutable-proof"
+		this._verifiableStorage = VerifiableStorageConnectorFactory.get(
+			options?.verifiableStorageType ?? "verifiable-storage"
 		);
 
-		this._identityConnector = IdentityConnectorFactory.get(
-			options?.identityConnectorType ?? "identity"
+		this._identityConnectorType = options?.identityConnectorType ?? "identity";
+
+		this._identityConnector = IdentityConnectorFactory.get(this._identityConnectorType);
+
+		this._backgroundTaskConnector = BackgroundTaskConnectorFactory.get(
+			options?.backgroundTaskConnectorType ?? "background-task"
 		);
+
+		if (Is.stringValue(options?.eventBusComponentType)) {
+			this._eventBusComponent = ComponentFactory.get(options.eventBusComponentType);
+		}
 
 		this._config = options?.config ?? {};
-		this._assertionMethodId = this._config.assertionMethodId ?? "immutable-proof";
-		this._proofConfigKeyId = this._config.proofConfigKeyId ?? "immutable-proof";
+		this._verificationMethodId = this._config.verificationMethodId ?? "immutable-proof-assertion";
 
-		SchemaOrgDataTypes.registerRedirects();
-		this._processing = false;
+		this._backgroundTaskConnector.registerHandler<
+			IImmutableProofTaskPayload,
+			IImmutableProofTaskResult
+		>("immutable-proof", "@twin.org/immutable-proof-task", "processProofTask", async task => {
+			await this.finaliseTask(task);
+		});
 	}
 
 	/**
-	 * Create a new authentication proof.
-	 * @param proofObject The object for the proof as JSON-LD.
+	 * Create a new proof.
+	 * @param document The document to create the proof for.
 	 * @param userIdentity The identity to create the immutable proof operation with.
 	 * @param nodeIdentity The node identity to use for vault operations.
-	 * @returns The id of the new authentication proof.
+	 * @returns The id of the new proof.
 	 */
 	public async create(
-		proofObject: IJsonLdNodeObject,
+		document: IJsonLdNodeObject,
 		userIdentity?: string,
 		nodeIdentity?: string
 	): Promise<string> {
-		Guards.object(this.CLASS_NAME, nameof(proofObject), proofObject);
+		Guards.object<IJsonLdNodeObject>(this.CLASS_NAME, nameof(document), document);
 		Guards.stringValue(this.CLASS_NAME, nameof(userIdentity), userIdentity);
 		Guards.stringValue(this.CLASS_NAME, nameof(nodeIdentity), nodeIdentity);
 
 		try {
 			const validationFailures: IValidationFailure[] = [];
-			await JsonLdHelper.validate(proofObject, validationFailures);
-			Validation.asValidationError(this.CLASS_NAME, nameof(proofObject), validationFailures);
+			await JsonLdHelper.validate(document, validationFailures);
+			Validation.asValidationError(this.CLASS_NAME, nameof(document), validationFailures);
 
 			const id = Converter.bytesToHex(RandomHelper.generate(32), false);
 
 			const dateCreated = new Date(Date.now()).toISOString();
 
-			const proofObjectId = ObjectHelper.extractProperty<string>(proofObject, ["@id", "id"], false);
+			const proofObjectId = ObjectHelper.extractProperty<string>(document, ["@id", "id"], false);
 
-			const hash = this.calculateHash(id, dateCreated, nodeIdentity, userIdentity, proofObject);
+			// We don't want to store the whole document in the immutable proof, as this could be large
+			// and also reveal information that should not be stored in the proof so we hash the document
+			// and store the hash
+			const proofObjectHash = this.calculateDocumentHash(document);
 
 			const proofEntity: ImmutableProof = {
 				id,
@@ -174,11 +189,21 @@ export class ImmutableProofService implements IImmutableProofComponent {
 				userIdentity,
 				dateCreated,
 				proofObjectId,
-				proofObjectHash: Converter.bytesToBase64(hash)
+				proofObjectHash
 			};
 			await this._proofStorage.set(proofEntity);
 
-			this.startProcessingProofs();
+			const immutableProof = this.proofEntityToJsonLd(proofEntity);
+
+			const proofTaskPayload: IImmutableProofTaskPayload = {
+				proofId: id,
+				nodeIdentity,
+				identityConnectorType: this._identityConnectorType,
+				verificationMethodId: this._verificationMethodId,
+				document: immutableProof as unknown as IJsonLdNodeObject
+			};
+
+			await this._backgroundTaskConnector.create("immutable-proof", proofTaskPayload);
 
 			return new Urn(ImmutableProofService.NAMESPACE, id).toString();
 		} catch (error) {
@@ -187,7 +212,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	}
 
 	/**
-	 * Get an authentication proof.
+	 * Get a proof.
 	 * @param id The id of the proof to get.
 	 * @returns The proof.
 	 * @throws NotFoundError if the proof is not found.
@@ -205,30 +230,21 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		}
 
 		try {
-			const { immutableProof } = await this.internalGet(id);
+			const { immutableProof } = await this.internalGet(id, false);
 
-			const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
-
-			return compacted as IImmutableProof;
+			return JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
 		} catch (error) {
 			throw new GeneralError(this.CLASS_NAME, "getFailed", undefined, error);
 		}
 	}
 
 	/**
-	 * Verify an authentication proof.
+	 * Verify a proof.
 	 * @param id The id of the proof to verify.
-	 * @param proofObject The object to verify as JSON-LD.
 	 * @returns The result of the verification and any failures.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	public async verify(
-		id: string,
-		proofObject: IJsonLdNodeObject
-	): Promise<{
-		verified: boolean;
-		failure?: ImmutableProofFailure;
-	}> {
+	public async verify(id: string): Promise<IImmutableProofVerification> {
 		Guards.stringValue(this.CLASS_NAME, nameof(id), id);
 
 		const urnParsed = Urn.fromValidString(id);
@@ -241,9 +257,11 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		}
 
 		try {
-			const { verified, failure } = await this.internalGet(id, proofObject);
+			const { verified, failure } = await this.internalGet(id, true);
 
 			return {
+				"@context": ImmutableProofContexts.ContextRoot,
+				type: ImmutableProofTypes.ImmutableProofVerification,
 				verified,
 				failure
 			};
@@ -253,13 +271,13 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	}
 
 	/**
-	 * Remove the immutable storage for the proof.
+	 * Remove the verifiable storage for the proof.
 	 * @param id The id of the proof to remove the storage from.
 	 * @param nodeIdentity The node identity to use for vault operations.
 	 * @returns Nothing.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	public async removeImmutable(id: string, nodeIdentity?: string): Promise<void> {
+	public async removeVerifiable(id: string, nodeIdentity?: string): Promise<void> {
 		Guards.stringValue(this.CLASS_NAME, nameof(id), id);
 		Guards.stringValue(this.CLASS_NAME, nameof(nodeIdentity), nodeIdentity);
 
@@ -280,13 +298,13 @@ export class ImmutableProofService implements IImmutableProofComponent {
 				throw new NotFoundError(this.CLASS_NAME, "proofNotFound", id);
 			}
 
-			if (Is.stringValue(streamEntity.immutableStorageId)) {
-				await this._immutableStorage.remove(nodeIdentity, streamEntity.immutableStorageId);
-				delete streamEntity.immutableStorageId;
+			if (Is.stringValue(streamEntity.verifiableStorageId)) {
+				await this._verifiableStorage.remove(nodeIdentity, streamEntity.verifiableStorageId);
+				delete streamEntity.verifiableStorageId;
 				await this._proofStorage.set(streamEntity);
 			}
 		} catch (error) {
-			throw new GeneralError(this.CLASS_NAME, "removeImmutableFailed", undefined, error);
+			throw new GeneralError(this.CLASS_NAME, "removeVerifiableFailed", undefined, error);
 		}
 	}
 
@@ -296,22 +314,8 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	 * @returns The hash.
 	 * @internal
 	 */
-	private calculateHash(
-		id: string,
-		dateCreated: string,
-		nodeIdentity: string,
-		userIdentity: string,
-		proofObject: IJsonLdNodeObject
-	): Uint8Array {
-		const b2b = new Blake2b(Blake2b.SIZE_256);
-
-		b2b.update(Converter.utf8ToBytes(id));
-		b2b.update(Converter.utf8ToBytes(dateCreated));
-		b2b.update(Converter.utf8ToBytes(nodeIdentity));
-		b2b.update(Converter.utf8ToBytes(userIdentity));
-		b2b.update(ObjectHelper.toBytes(proofObject));
-
-		return b2b.digest();
+	private calculateDocumentHash(nodeObject: IJsonLdNodeObject): string {
+		return `sha256:${Converter.bytesToBase64(Sha256.sum256(ObjectHelper.toBytes(JsonHelper.canonicalize(nodeObject))))}`;
 	}
 
 	/**
@@ -320,103 +324,77 @@ export class ImmutableProofService implements IImmutableProofComponent {
 	 * @returns The model.
 	 * @internal
 	 */
-	private proofEntityToModel(proofEntity: ImmutableProof): IImmutableProof {
-		const model: IImmutableProof = {
-			"@context": [
-				ImmutableProofTypes.ContextRoot,
-				SchemaOrgTypes.ContextRoot,
-				DidContexts.ContextVCDataIntegrity
-			],
+	private proofEntityToJsonLd(proofEntity: ImmutableProof): IImmutableProof {
+		const jsonLd: IImmutableProof = {
+			"@context": [ImmutableProofContexts.ContextRoot, ImmutableProofContexts.ContextRootCommon],
 			type: ImmutableProofTypes.ImmutableProof,
 			id: proofEntity.id,
+			nodeIdentity: proofEntity.nodeIdentity,
 			userIdentity: proofEntity.userIdentity,
 			proofObjectId: proofEntity.proofObjectId,
-			proofObjectHash: proofEntity.proofObjectHash
+			proofObjectHash: proofEntity.proofObjectHash,
+			verifiableStorageId: proofEntity.verifiableStorageId
 		};
 
-		return model;
+		return jsonLd;
 	}
 
 	/**
-	 * Start processing proofs.
-	 * @returns Nothing.
+	 * Process a proof.
+	 * @param proofEntity The proof entity to process.
 	 * @internal
 	 */
-	private startProcessingProofs(): void {
-		if (!this._processing) {
-			setTimeout(async () => {
-				await this.processProofs();
-			}, 0);
-		}
-	}
+	private async finaliseTask(
+		task: IBackgroundTask<IImmutableProofTaskPayload, IImmutableProofTaskResult>
+	): Promise<void> {
+		if (task.status === TaskStatus.Success && Is.object(task.payload) && Is.object(task.result)) {
+			const proofEntity = await this._proofStorage.get(task.payload.proofId);
 
-	/**
-	 * Process the proofs.
-	 * @internal
-	 */
-	private async processProofs(): Promise<void> {
-		// Get the oldest pending proof, plus one more, we can then determine whether to
-		// trigger another process after this one
-		const pendingProofs = await this._proofStorage.query(
-			{
-				property: "immutableStorageId",
-				comparison: ComparisonOperator.Equals,
-				value: undefined
-			},
-			[
-				{
-					property: "dateCreated",
-					sortDirection: SortDirection.Ascending
+			if (Is.object(proofEntity)) {
+				const immutableProof: IImmutableProof = this.proofEntityToJsonLd(proofEntity);
+
+				// As we are adding the proof to the data we update its context
+				immutableProof["@context"] = JsonLdProcessor.combineContexts(
+					[ImmutableProofContexts.ContextRoot, ImmutableProofContexts.ContextRootCommon],
+					task.result.proof["@context"]
+				) as IImmutableProof["@context"];
+				immutableProof.proof = task.result.proof;
+				ObjectHelper.propertyDelete(immutableProof.proof, "@context");
+
+				if (Is.stringValue(immutableProof.proof.created)) {
+					proofEntity.dateCreated = immutableProof.proof.created;
 				}
-			],
-			undefined,
-			undefined,
-			2
-		);
 
-		if (pendingProofs.entities.length > 0) {
-			const proofEntity = pendingProofs.entities[0] as ImmutableProof;
+				const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
 
-			const immutableProof: IImmutableProof = this.proofEntityToModel(proofEntity);
+				const verifiableCreateResult = await this._verifiableStorage.create(
+					proofEntity.nodeIdentity,
+					ObjectHelper.toBytes(compacted)
+				);
 
-			const hashData = await this.generateHashData(proofEntity.nodeIdentity, immutableProof);
+				proofEntity.verifiableStorageId = verifiableCreateResult.id;
 
-			immutableProof.proof = await this._identityConnector.createProof(
-				proofEntity.nodeIdentity,
-				`${proofEntity.nodeIdentity}#${this._assertionMethodId}`,
-				hashData
-			);
+				await this._proofStorage.set(proofEntity);
 
-			proofEntity.dateCreated = immutableProof.proof.created ?? new Date(Date.now()).toISOString();
-
-			const compacted = await JsonLdProcessor.compact(immutableProof, immutableProof["@context"]);
-
-			proofEntity.immutableStorageId = await this._immutableStorage.store(
-				proofEntity.nodeIdentity,
-				ObjectHelper.toBytes(compacted)
-			);
-
-			await this._proofStorage.set(proofEntity);
-		}
-
-		// If there are still remaining proofs, start the timer again
-		this._processing = false;
-		if (pendingProofs.entities.length > 1) {
-			this.startProcessingProofs();
+				await this._eventBusComponent?.publish<IImmutableProofEventBusProofCreated>(
+					ImmutableProofTopics.ProofCreated,
+					{ id: new Urn(ImmutableProofService.NAMESPACE, task.payload.proofId).toString() }
+				);
+			}
 		}
 	}
 
 	/**
-	 * Verify an authentication proof.
+	 * Verify a proof.
 	 * @param id The id of the proof to verify.
-	 * @param proofObject The object to verify as JSON-LD.
+	 * @param verify Validate the proof.
 	 * @returns The result of the verification and any failures.
 	 * @throws NotFoundError if the proof is not found.
 	 * @internal
 	 */
 	private async internalGet(
 		id: string,
-		proofObject?: IJsonLdNodeObject
+		verify: boolean
 	): Promise<{
 		verified: boolean;
 		failure?: ImmutableProofFailure;
@@ -430,28 +408,39 @@ export class ImmutableProofService implements IImmutableProofComponent {
 			throw new NotFoundError(this.CLASS_NAME, "proofNotFound", id);
 		}
 
-		let proofModel = await this.proofEntityToModel(proofEntity);
+		let proofJsonLd = this.proofEntityToJsonLd(proofEntity);
 		let verified = false;
 		let failure: ImmutableProofFailure | undefined = ImmutableProofFailure.NotIssued;
 
-		if (Is.stringValue(proofEntity.immutableStorageId)) {
+		if (Is.stringValue(proofEntity.verifiableStorageId)) {
 			failure = ImmutableProofFailure.ProofMissing;
-			const immutableData = await this._immutableStorage.get(proofEntity.immutableStorageId);
+			const immutableResult = await this._verifiableStorage.get(proofEntity.verifiableStorageId);
 
-			if (Is.uint8Array(immutableData)) {
-				proofModel = ObjectHelper.fromBytes<IImmutableProof>(immutableData);
+			if (Is.uint8Array(immutableResult.data)) {
+				proofJsonLd = ObjectHelper.fromBytes<IImmutableProof>(immutableResult.data);
 
-				if (Is.object(proofModel.proof) && Is.object(proofObject)) {
-					if (proofModel.proof.cryptosuite !== DidCryptoSuites.EdDSAJcs2022) {
+				const unsecureDocument = ObjectHelper.clone(proofJsonLd) as unknown as IJsonLdNodeObject;
+				proofJsonLd.immutableReceipt = immutableResult.receipt;
+				proofJsonLd.verifiableStorageId = proofEntity.verifiableStorageId;
+
+				// As we are adding the receipt to the data we update the JSON-LD context
+				const receiptContext = immutableResult.receipt["@context"];
+				if (!Is.empty(receiptContext)) {
+					proofJsonLd["@context"] = JsonLdProcessor.combineContexts(
+						proofJsonLd["@context"],
+						receiptContext
+					) as IImmutableProof["@context"];
+				}
+
+				if (verify && Is.object(proofJsonLd.proof)) {
+					if (proofJsonLd.proof.cryptosuite !== DidCryptoSuites.EdDSAJcs2022) {
 						failure = ImmutableProofFailure.CryptoSuiteMismatch;
-					} else if (proofModel.proof.type !== DidTypes.DataIntegrityProof) {
+					} else if (proofJsonLd.proof.type !== ProofTypes.DataIntegrityProof) {
 						failure = ImmutableProofFailure.ProofTypeMismatch;
 					} else {
-						const hashData = await this.generateHashData(proofEntity.nodeIdentity, proofModel);
-
 						const isVerified = await this._identityConnector.verifyProof(
-							hashData,
-							proofModel.proof
+							unsecureDocument,
+							proofJsonLd.proof
 						);
 
 						if (isVerified) {
@@ -466,37 +455,9 @@ export class ImmutableProofService implements IImmutableProofComponent {
 		}
 
 		return {
-			immutableProof: proofModel,
+			immutableProof: proofJsonLd,
 			verified,
 			failure
 		};
-	}
-
-	/**
-	 * Generate the hash data for the proof.
-	 * Conforms to https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022
-	 * @param nodeIdentity The node identity to use for vault operations.
-	 * @param immutableProof The immutable proof to generate the hash data for.
-	 * @returns The hash data.
-	 * @internal
-	 */
-	private async generateHashData(
-		nodeIdentity: string,
-		immutableProof: IImmutableProof
-	): Promise<Uint8Array> {
-		const canonicalDocument = JsonHelper.canonicalize(ObjectHelper.omit(immutableProof, ["proof"]));
-
-		const proofConfigKey = await this._vaultConnector.getKey(
-			`${nodeIdentity}/${this._proofConfigKeyId}`
-		);
-
-		const proofConfigHash = Sha256.sum256(proofConfigKey.privateKey);
-		const transformedDocumentHash = Sha256.sum256(Converter.utf8ToBytes(canonicalDocument));
-
-		const hashData = new Uint8Array(proofConfigHash.length + transformedDocumentHash.length);
-		hashData.set(proofConfigHash);
-		hashData.set(transformedDocumentHash, proofConfigHash.length);
-
-		return hashData;
 	}
 }

@@ -4,13 +4,13 @@ Class describing the immutable proof.
 
 ## Constructors
 
-### new ImmutableProof()
+### Constructor
 
-> **new ImmutableProof**(): [`ImmutableProof`](ImmutableProof.md)
+> **new ImmutableProof**(): `ImmutableProof`
 
 #### Returns
 
-[`ImmutableProof`](ImmutableProof.md)
+`ImmutableProof`
 
 ## Properties
 
@@ -62,8 +62,8 @@ The associated hash for the item.
 
 ***
 
-### immutableStorageId?
+### verifiableStorageId?
 
-> `optional` **immutableStorageId**: `string`
+> `optional` **verifiableStorageId**: `string`
 
-The immutable storage id.
+The verifiable storage id.

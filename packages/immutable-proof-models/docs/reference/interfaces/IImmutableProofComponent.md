@@ -10,21 +10,27 @@ Interface describing an immutable proof contract.
 
 ### create()
 
-> **create**(`proofObject`, `userIdentity`?, `nodeIdentity`?): `Promise`\<`string`\>
+> **create**(`document`, `userIdentity?`, `nodeIdentity?`): `Promise`\<`string`\>
 
-Create a new authentication proof.
+Create a new proof.
 
 #### Parameters
 
-• **proofObject**: `IJsonLdNodeObject`
+##### document
 
-The object for the proof as JSON-LD.
+`IJsonLdNodeObject`
 
-• **userIdentity?**: `string`
+The document to create the proof for.
+
+##### userIdentity?
+
+`string`
 
 The identity to create the immutable proof operation with.
 
-• **nodeIdentity?**: `string`
+##### nodeIdentity?
+
+`string`
 
 The node identity to use for vault operations.
 
@@ -32,7 +38,7 @@ The node identity to use for vault operations.
 
 `Promise`\<`string`\>
 
-The id of the new authentication proof.
+The id of the new proof.
 
 ***
 
@@ -40,11 +46,13 @@ The id of the new authentication proof.
 
 > **get**(`id`): `Promise`\<[`IImmutableProof`](IImmutableProof.md)\>
 
-Get an authentication proof.
+Get a proof.
 
 #### Parameters
 
-• **id**: `string`
+##### id
+
+`string`
 
 The id of the proof to get.
 
@@ -62,33 +70,23 @@ NotFoundError if the proof is not found.
 
 ### verify()
 
-> **verify**(`id`, `proofObject`): `Promise`\<`object`\>
+> **verify**(`id`): `Promise`\<[`IImmutableProofVerification`](IImmutableProofVerification.md)\>
 
-Verify an authentication proof.
+Verify a proof.
 
 #### Parameters
 
-• **id**: `string`
+##### id
+
+`string`
 
 The id of the proof to verify.
 
-• **proofObject**: `IJsonLdNodeObject`
-
-The object to verify as JSON-LD.
-
 #### Returns
 
-`Promise`\<`object`\>
+`Promise`\<[`IImmutableProofVerification`](IImmutableProofVerification.md)\>
 
 The result of the verification and any failures.
-
-##### verified
-
-> **verified**: `boolean`
-
-##### failure?
-
-> `optional` **failure**: [`ImmutableProofFailure`](../type-aliases/ImmutableProofFailure.md)
 
 #### Throws
 
@@ -96,19 +94,23 @@ NotFoundError if the proof is not found.
 
 ***
 
-### removeImmutable()
+### removeVerifiable()
 
-> **removeImmutable**(`id`, `nodeIdentity`?): `Promise`\<`void`\>
+> **removeVerifiable**(`id`, `nodeIdentity?`): `Promise`\<`void`\>
 
-Remove the immutable storage for the proof.
+Remove the verifiable storage for the proof.
 
 #### Parameters
 
-• **id**: `string`
+##### id
+
+`string`
 
 The id of the proof to remove the storage from.
 
-• **nodeIdentity?**: `string`
+##### nodeIdentity?
+
+`string`
 
 The node identity to use for vault operations.
 

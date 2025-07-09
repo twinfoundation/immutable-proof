@@ -10,9 +10,9 @@ import type {
 	IImmutableProofCreateRequest,
 	IImmutableProofGetRequest,
 	IImmutableProofGetResponse,
+	IImmutableProofVerification,
 	IImmutableProofVerifyRequest,
-	IImmutableProofVerifyResponse,
-	ImmutableProofFailure
+	IImmutableProofVerifyResponse
 } from "@twin.org/immutable-proof-models";
 import { nameof } from "@twin.org/nameof";
 import { HeaderTypes, MimeTypes } from "@twin.org/web";
@@ -35,16 +35,16 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 	}
 
 	/**
-	 * Create a new authentication proof.
-	 * @param proofObject The object for the proof as JSON-LD.
-	 * @returns The id of the new authentication proof.
+	 * Create a new proof.
+	 * @param document The document to create the proof for.
+	 * @returns The id of the new proof.
 	 */
-	public async create(proofObject: IJsonLdNodeObject): Promise<string> {
-		Guards.object(this.CLASS_NAME, nameof(proofObject), proofObject);
+	public async create(document: IJsonLdNodeObject): Promise<string> {
+		Guards.object(this.CLASS_NAME, nameof(document), document);
 
 		const response = await this.fetch<IImmutableProofCreateRequest, ICreatedResponse>("/", "POST", {
 			body: {
-				proofObject
+				document
 			}
 		});
 
@@ -52,7 +52,7 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 	}
 
 	/**
-	 * Get an authentication proof.
+	 * Get a proof.
 	 * @param id The id of the proof to get.
 	 * @returns The proof.
 	 * @throws NotFoundError if the proof is not found.
@@ -61,7 +61,7 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 		Guards.stringValue(this.CLASS_NAME, nameof(id), id);
 
 		const response = await this.fetch<IImmutableProofGetRequest, IImmutableProofGetResponse>(
-			"/:id/:entryId",
+			"/:id",
 			"GET",
 			{
 				headers: {
@@ -77,31 +77,23 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 	}
 
 	/**
-	 * Verify an authentication proof.
+	 * Verify a proof.
 	 * @param id The id of the proof to verify.
-	 * @param proofObject The object to verify as JSON-LD.
 	 * @returns The result of the verification and any failures.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	public async verify(
-		id: string,
-		proofObject: IJsonLdNodeObject
-	): Promise<{
-		verified: boolean;
-		failure?: ImmutableProofFailure;
-	}> {
+	public async verify(id: string): Promise<IImmutableProofVerification> {
 		Guards.stringValue(this.CLASS_NAME, nameof(id), id);
-		Guards.object(this.CLASS_NAME, nameof(proofObject), proofObject);
 
 		const response = await this.fetch<IImmutableProofVerifyRequest, IImmutableProofVerifyResponse>(
-			"/:id",
-			"POST",
+			"/:id/verify",
+			"GET",
 			{
+				headers: {
+					[HeaderTypes.Accept]: MimeTypes.JsonLd
+				},
 				pathParams: {
 					id
-				},
-				body: {
-					proofObject
 				}
 			}
 		);
@@ -110,12 +102,12 @@ export class ImmutableProofClient extends BaseRestClient implements IImmutablePr
 	}
 
 	/**
-	 * Remove the immutable storage for the proof.
+	 * Remove the verifiable storage for the proof.
 	 * @param id The id of the proof to remove the storage from.
 	 * @returns Nothing.
 	 * @throws NotFoundError if the proof is not found.
 	 */
-	public async removeImmutable(id: string): Promise<void> {
-		throw new NotSupportedError(this.CLASS_NAME, "removeImmutable");
+	public async removeVerifiable(id: string): Promise<void> {
+		throw new NotSupportedError(this.CLASS_NAME, "removeVerifiable");
 	}
 }

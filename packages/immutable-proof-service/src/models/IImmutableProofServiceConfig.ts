@@ -6,14 +6,8 @@
  */
 export interface IImmutableProofServiceConfig {
 	/**
-	 * The assertion method id to use for the stream.
-	 * @default immutable-proof
+	 * The verification method id to use for the proof.
+	 * @default immutable-proof-assertion
 	 */
-	assertionMethodId?: string;
-
-	/**
-	 * The key to use in the proof config.
-	 * @default immutable-proof
-	 */
-	proofConfigKeyId?: string;
+	verificationMethodId?: string;
 }

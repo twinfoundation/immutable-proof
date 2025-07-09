@@ -3,8 +3,9 @@
 import type { IValidationFailure } from "@twin.org/core";
 import { DataTypeHelper } from "@twin.org/data-core";
 import { JsonLdDataTypes } from "@twin.org/data-json-ld";
-import { DidContexts, DidCryptoSuites, DidTypes } from "@twin.org/standards-w3c-did";
+import { DidContexts, DidCryptoSuites, ProofTypes } from "@twin.org/standards-w3c-did";
 import { ImmutableProofDataTypes } from "../../src/dataTypes/immutableProofDataTypes";
+import { ImmutableProofContexts } from "../../src/models/immutableProofContexts";
 import { ImmutableProofTypes } from "../../src/models/immutableProofTypes";
 
 describe("ImmutableDataTypes", () => {
@@ -17,7 +18,7 @@ describe("ImmutableDataTypes", () => {
 		const validationFailures: IValidationFailure[] = [];
 		const isValid = await DataTypeHelper.validate(
 			"",
-			ImmutableProofTypes.ImmutableProof,
+			`${ImmutableProofContexts.ContextRoot}${ImmutableProofTypes.ImmutableProof}`,
 			{
 				id: "foo",
 				dateCreated: new Date().toISOString()
@@ -32,11 +33,12 @@ describe("ImmutableDataTypes", () => {
 		const validationFailures: IValidationFailure[] = [];
 		const isValid = await DataTypeHelper.validate(
 			"",
-			ImmutableProofTypes.ImmutableProof,
+			`${ImmutableProofContexts.ContextRoot}${ImmutableProofTypes.ImmutableProof}`,
 			{
-				"@context": [ImmutableProofTypes.ContextRoot],
+				"@context": [ImmutableProofContexts.ContextRoot, ImmutableProofContexts.ContextRootCommon],
 				type: ImmutableProofTypes.ImmutableProof,
 				id: "proof:123456",
+				nodeIdentity: "node-1",
 				userIdentity: "user-1",
 				proofObjectId: "test:23456",
 				proofObjectHash: "aaabbbcccddd"
@@ -53,15 +55,16 @@ describe("ImmutableDataTypes", () => {
 			"",
 			ImmutableProofTypes.ImmutableProof,
 			{
-				"@context": [ImmutableProofTypes.ContextRoot],
+				"@context": [ImmutableProofContexts.ContextRoot, ImmutableProofContexts.ContextRootCommon],
 				type: ImmutableProofTypes.ImmutableProof,
 				id: "proof:123456",
+				nodeIdentity: "node-1",
 				userIdentity: "user-1",
 				proofObjectId: "test:23456",
 				proofObjectHash: "aaabbbcccddd",
 				proof: {
-					"@context": [DidContexts.ContextVCDataIntegrity],
-					type: DidTypes.DataIntegrityProof,
+					"@context": [DidContexts.ContextDataIntegrity],
+					type: ProofTypes.DataIntegrityProof,
 					cryptosuite: DidCryptoSuites.EdDSAJcs2022,
 					proofPurpose: "assertionMethod",
 					proofValue: "7DdiPPYtxLjCD3wA1po2rvZHTDYjkZYiEtazrfiwJcwnKCizhGFhBGHeRdx"

@@ -8,41 +8,23 @@ Class for performing immutable proof operations.
 
 ## Constructors
 
-### new ImmutableProofService()
+### Constructor
 
-> **new ImmutableProofService**(`options`?): [`ImmutableProofService`](ImmutableProofService.md)
+> **new ImmutableProofService**(`options?`): `ImmutableProofService`
 
 Create a new instance of ImmutableProofService.
 
 #### Parameters
 
-• **options?**
+##### options?
+
+[`IImmutableProofServiceConstructorOptions`](../interfaces/IImmutableProofServiceConstructorOptions.md)
 
 The dependencies for the immutable proof connector.
 
-• **options.vaultConnectorType?**: `string`
-
-The vault connector type, defaults to "vault".
-
-• **options.immutableProofEntityStorageType?**: `string`
-
-The entity storage for proofs, defaults to "immutable-proof".
-
-• **options.immutableStorageType?**: `string`
-
-The immutable storage, defaults to "immutable-proof".
-
-• **options.config?**: [`IImmutableProofServiceConfig`](../interfaces/IImmutableProofServiceConfig.md)
-
-The configuration for the connector.
-
-• **options.identityConnectorType?**: `string`
-
-The identity connector type, defaults to "identity".
-
 #### Returns
 
-[`ImmutableProofService`](ImmutableProofService.md)
+`ImmutableProofService`
 
 ## Properties
 
@@ -68,21 +50,27 @@ Runtime name for the class.
 
 ### create()
 
-> **create**(`proofObject`, `userIdentity`?, `nodeIdentity`?): `Promise`\<`string`\>
+> **create**(`document`, `userIdentity?`, `nodeIdentity?`): `Promise`\<`string`\>
 
-Create a new authentication proof.
+Create a new proof.
 
 #### Parameters
 
-• **proofObject**: `IJsonLdNodeObject`
+##### document
 
-The object for the proof as JSON-LD.
+`IJsonLdNodeObject`
 
-• **userIdentity?**: `string`
+The document to create the proof for.
+
+##### userIdentity?
+
+`string`
 
 The identity to create the immutable proof operation with.
 
-• **nodeIdentity?**: `string`
+##### nodeIdentity?
+
+`string`
 
 The node identity to use for vault operations.
 
@@ -90,7 +78,7 @@ The node identity to use for vault operations.
 
 `Promise`\<`string`\>
 
-The id of the new authentication proof.
+The id of the new proof.
 
 #### Implementation of
 
@@ -102,11 +90,13 @@ The id of the new authentication proof.
 
 > **get**(`id`): `Promise`\<`IImmutableProof`\>
 
-Get an authentication proof.
+Get a proof.
 
 #### Parameters
 
-• **id**: `string`
+##### id
+
+`string`
 
 The id of the proof to get.
 
@@ -128,33 +118,23 @@ NotFoundError if the proof is not found.
 
 ### verify()
 
-> **verify**(`id`, `proofObject`): `Promise`\<`object`\>
+> **verify**(`id`): `Promise`\<`IImmutableProofVerification`\>
 
-Verify an authentication proof.
+Verify a proof.
 
 #### Parameters
 
-• **id**: `string`
+##### id
+
+`string`
 
 The id of the proof to verify.
 
-• **proofObject**: `IJsonLdNodeObject`
-
-The object to verify as JSON-LD.
-
 #### Returns
 
-`Promise`\<`object`\>
+`Promise`\<`IImmutableProofVerification`\>
 
 The result of the verification and any failures.
-
-##### verified
-
-> **verified**: `boolean`
-
-##### failure?
-
-> `optional` **failure**: `ImmutableProofFailure`
 
 #### Throws
 
@@ -166,19 +146,23 @@ NotFoundError if the proof is not found.
 
 ***
 
-### removeImmutable()
+### removeVerifiable()
 
-> **removeImmutable**(`id`, `nodeIdentity`?): `Promise`\<`void`\>
+> **removeVerifiable**(`id`, `nodeIdentity?`): `Promise`\<`void`\>
 
-Remove the immutable storage for the proof.
+Remove the verifiable storage for the proof.
 
 #### Parameters
 
-• **id**: `string`
+##### id
+
+`string`
 
 The id of the proof to remove the storage from.
 
-• **nodeIdentity?**: `string`
+##### nodeIdentity?
+
+`string`
 
 The node identity to use for vault operations.
 
@@ -194,4 +178,4 @@ NotFoundError if the proof is not found.
 
 #### Implementation of
 
-`IImmutableProofComponent.removeImmutable`
+`IImmutableProofComponent.removeVerifiable`

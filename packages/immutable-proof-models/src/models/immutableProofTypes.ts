@@ -7,14 +7,14 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const ImmutableProofTypes = {
 	/**
-	 * The context root for the immutable proof types.
-	 */
-	ContextRoot: "https://schema.twindev.org/immutable-proof/",
-
-	/**
 	 * Represents Immutable Proof.
 	 */
-	ImmutableProof: "ImmutableProof"
+	ImmutableProof: "ImmutableProof",
+
+	/**
+	 * Represents Immutable Proof Verification.
+	 */
+	ImmutableProofVerification: "ImmutableProofVerification"
 } as const;
 
 /**

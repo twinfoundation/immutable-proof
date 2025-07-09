@@ -12,21 +12,23 @@ Client for performing immutable proof through to REST endpoints.
 
 ## Constructors
 
-### new ImmutableProofClient()
+### Constructor
 
-> **new ImmutableProofClient**(`config`): [`ImmutableProofClient`](ImmutableProofClient.md)
+> **new ImmutableProofClient**(`config`): `ImmutableProofClient`
 
 Create a new instance of ImmutableProofClient.
 
 #### Parameters
 
-• **config**: `IBaseRestClientConfig`
+##### config
+
+`IBaseRestClientConfig`
 
 The configuration for the client.
 
 #### Returns
 
-[`ImmutableProofClient`](ImmutableProofClient.md)
+`ImmutableProofClient`
 
 #### Overrides
 
@@ -48,21 +50,23 @@ Runtime name for the class.
 
 ### create()
 
-> **create**(`proofObject`): `Promise`\<`string`\>
+> **create**(`document`): `Promise`\<`string`\>
 
-Create a new authentication proof.
+Create a new proof.
 
 #### Parameters
 
-• **proofObject**: `IJsonLdNodeObject`
+##### document
 
-The object for the proof as JSON-LD.
+`IJsonLdNodeObject`
+
+The document to create the proof for.
 
 #### Returns
 
 `Promise`\<`string`\>
 
-The id of the new authentication proof.
+The id of the new proof.
 
 #### Implementation of
 
@@ -74,11 +78,13 @@ The id of the new authentication proof.
 
 > **get**(`id`): `Promise`\<`IImmutableProof`\>
 
-Get an authentication proof.
+Get a proof.
 
 #### Parameters
 
-• **id**: `string`
+##### id
+
+`string`
 
 The id of the proof to get.
 
@@ -100,33 +106,23 @@ NotFoundError if the proof is not found.
 
 ### verify()
 
-> **verify**(`id`, `proofObject`): `Promise`\<`object`\>
+> **verify**(`id`): `Promise`\<`IImmutableProofVerification`\>
 
-Verify an authentication proof.
+Verify a proof.
 
 #### Parameters
 
-• **id**: `string`
+##### id
+
+`string`
 
 The id of the proof to verify.
 
-• **proofObject**: `IJsonLdNodeObject`
-
-The object to verify as JSON-LD.
-
 #### Returns
 
-`Promise`\<`object`\>
+`Promise`\<`IImmutableProofVerification`\>
 
 The result of the verification and any failures.
-
-##### verified
-
-> **verified**: `boolean`
-
-##### failure?
-
-> `optional` **failure**: `ImmutableProofFailure`
 
 #### Throws
 
@@ -138,15 +134,17 @@ NotFoundError if the proof is not found.
 
 ***
 
-### removeImmutable()
+### removeVerifiable()
 
-> **removeImmutable**(`id`): `Promise`\<`void`\>
+> **removeVerifiable**(`id`): `Promise`\<`void`\>
 
-Remove the immutable storage for the proof.
+Remove the verifiable storage for the proof.
 
 #### Parameters
 
-• **id**: `string`
+##### id
+
+`string`
 
 The id of the proof to remove the storage from.
 
@@ -162,4 +160,4 @@ NotFoundError if the proof is not found.
 
 #### Implementation of
 
-`IImmutableProofComponent.removeImmutable`
+`IImmutableProofComponent.removeVerifiable`

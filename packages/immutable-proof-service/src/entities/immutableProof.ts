@@ -34,7 +34,7 @@ export class ImmutableProof {
 	/**
 	 * The associated id for the item.
 	 */
-	@property({ type: "string" })
+	@property({ type: "string", optional: true })
 	public proofObjectId?: string;
 
 	/**
@@ -44,8 +44,8 @@ export class ImmutableProof {
 	public proofObjectHash!: string;
 
 	/**
-	 * The immutable storage id.
+	 * The verifiable storage id.
 	 */
-	@property({ type: "string" })
-	public immutableStorageId?: string;
+	@property({ type: "string", optional: true })
+	public verifiableStorageId?: string;
 }

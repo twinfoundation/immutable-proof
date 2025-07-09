@@ -18,6 +18,8 @@
 		"**/wordlists/**"
 	],
 	"words": [
+		"abbrev",
+		"autorelease",
 		"bech",
 		"cryptosuite",
 		"Faucet",
