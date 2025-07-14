@@ -7,7 +7,7 @@
 	],
 	"externalReferences": {
 		"IJsonLd(.*)": "https://schema.twindev.org/json-ld/JsonLd$1",
-		"IDid(.*)": "https://schema.twindev.org/did/Did$1",
-		"IDataIntegrityProof": "https://schema.twindev.org/did/DataIntegrityProof"
+		"IDid(.*)": "https://schema.twindev.org/w3c-did/Did$1",
+		"IDataIntegrityProof": "https://schema.twindev.org/w3c-did/DataIntegrityProof"
 	}
 }
