@@ -59,8 +59,9 @@ import type { IImmutableProofServiceConstructorOptions } from "./models/IImmutab
 export class ImmutableProofService implements IImmutableProofComponent {
 	/**
 	 * The namespace for the service.
+	 * @internal
 	 */
-	public static readonly NAMESPACE: string = "immutable-proof";
+	private static readonly _NAMESPACE: string = "immutable-proof";
 
 	/**
 	 * Runtime name for the class.
@@ -205,7 +206,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 
 			await this._backgroundTaskConnector.create("immutable-proof", proofTaskPayload);
 
-			return new Urn(ImmutableProofService.NAMESPACE, id).toString();
+			return new Urn(ImmutableProofService._NAMESPACE, id).toString();
 		} catch (error) {
 			throw new GeneralError(this.CLASS_NAME, "createFailed", undefined, error);
 		}
@@ -222,9 +223,9 @@ export class ImmutableProofService implements IImmutableProofComponent {
 
 		const urnParsed = Urn.fromValidString(id);
 
-		if (urnParsed.namespaceIdentifier() !== ImmutableProofService.NAMESPACE) {
+		if (urnParsed.namespaceIdentifier() !== ImmutableProofService._NAMESPACE) {
 			throw new GeneralError(this.CLASS_NAME, "namespaceMismatch", {
-				namespace: ImmutableProofService.NAMESPACE,
+				namespace: ImmutableProofService._NAMESPACE,
 				id
 			});
 		}
@@ -249,9 +250,9 @@ export class ImmutableProofService implements IImmutableProofComponent {
 
 		const urnParsed = Urn.fromValidString(id);
 
-		if (urnParsed.namespaceIdentifier() !== ImmutableProofService.NAMESPACE) {
+		if (urnParsed.namespaceIdentifier() !== ImmutableProofService._NAMESPACE) {
 			throw new GeneralError(this.CLASS_NAME, "namespaceMismatch", {
-				namespace: ImmutableProofService.NAMESPACE,
+				namespace: ImmutableProofService._NAMESPACE,
 				id
 			});
 		}
@@ -283,9 +284,9 @@ export class ImmutableProofService implements IImmutableProofComponent {
 
 		const urnParsed = Urn.fromValidString(id);
 
-		if (urnParsed.namespaceIdentifier() !== ImmutableProofService.NAMESPACE) {
+		if (urnParsed.namespaceIdentifier() !== ImmutableProofService._NAMESPACE) {
 			throw new GeneralError(this.CLASS_NAME, "namespaceMismatch", {
-				namespace: ImmutableProofService.NAMESPACE,
+				namespace: ImmutableProofService._NAMESPACE,
 				id
 			});
 		}
@@ -378,7 +379,7 @@ export class ImmutableProofService implements IImmutableProofComponent {
 
 				await this._eventBusComponent?.publish<IImmutableProofEventBusProofCreated>(
 					ImmutableProofTopics.ProofCreated,
-					{ id: new Urn(ImmutableProofService.NAMESPACE, task.payload.proofId).toString() }
+					{ id: new Urn(ImmutableProofService._NAMESPACE, task.payload.proofId).toString() }
 				);
 			}
 		}
